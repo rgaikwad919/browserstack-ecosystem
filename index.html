@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrowserStack Ecosystem</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  .node-pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .slide-in { animation: slideIn 0.35s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:#0f1e3d; }
+  ::-webkit-scrollbar-thumb { background:#1a56db; border-radius:3px; }
+  .ecosystem-map { overflow:hidden; cursor:grab; user-select:none; }
+  .ecosystem-map:active { cursor:grabbing; }
+  .node-card { transition: all 0.2s ease; }
+  .node-card:hover { transform:scale(1.08); filter:brightness(1.15); }
+  .node-selected { box-shadow: 0 0 0 3px #f97316, 0 0 20px rgba(249,115,22,0.4); }
+  .lifecycle-card { transition: all 0.2s ease; }
+  .lifecycle-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,0,0,0.3); }
+  .wizard-step { animation: fadeIn 0.3s ease; }
+  .drawer { transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); }
+  .drawer-closed { transform: translateX(100%); }
+  .drawer-open { transform: translateX(0); }
+  .tag { display:inline-flex;align-items:center;padding:2px 10px;border-radius:9999px;font-size:12px;font-weight:500; }
+  .btn-primary { background:#1a56db;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s; }
+  .btn-primary:hover { background:#1748c7;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,86,219,0.4); }
+  .btn-secondary { background:transparent;color:#1a56db;border:2px solid #1a56db;border-radius:8px;padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s; }
+  .btn-secondary:hover { background:#1a56db;color:#fff; }
+  .gradient-bg { background: linear-gradient(135deg, #0f1e3d 0%, #1a2f5f 50%, #0f1e3d 100%); }
+  .glass { background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1); }
+  .hero-gradient { background: radial-gradient(ellipse at 50% 0%, rgba(26,86,219,0.3) 0%, transparent 70%); }
+</style>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        bs: { blue:'#1a56db', teal:'#0ea5e9', navy:'#0f1e3d', orange:'#f97316', yellow:'#fbbf24' }
+      }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+const { 
+  Network, Layers, Cpu, Zap, Search, Settings, Shield, 
+  CheckCircle, AlertCircle, TrendingUp, Users, ChevronRight,
+  Globe, Smartphone, Layout, Accessibility, Activity, Box,
+  ZapOff, Filter, BarChart, Send, X, Menu, Info, ExternalLink,
+  Clipboard, MousePointer2, ZoomIn, ZoomOut, Maximize
+} = lucide;
+
+// --- Data ---
+const PRODUCTS = [
+  { id: 'live', name: 'Live', category: 'Web Testing', description: 'Manual cross-browser testing on real browsers.', icon: 'Globe', color: '#3b82f6', personas: ['Manual Tester', 'Developer'], stages: ['Execute', 'Analyze'] },
+  { id: 'automate', name: 'Automate', category: 'Web Testing', description: 'Real-browser automation grid for Selenium/Playwright/Cypress.', icon: 'Zap', color: '#3b82f6', personas: ['Automation Engineer', 'Developer'], stages: ['Execute', 'Analyze', 'Maintain'] },
+  { id: 'app-live', name: 'App Live', category: 'Mobile Testing', description: 'Manual app testing on real iOS/Android devices.', icon: 'Smartphone', color: '#10b981', personas: ['Manual Tester'], stages: ['Execute', 'Analyze'] },
+  { id: 'app-automate', name: 'App Automate', category: 'Mobile Testing', description: 'Appium/Espresso/XCUITest on real mobile devices.', icon: 'Cpu', color: '#10b981', personas: ['Automation Engineer'], stages: ['Execute', 'Analyze', 'Maintain'] },
+  { id: 'percy', name: 'Percy', category: 'Quality & Analytics', description: 'Automated visual testing and review.', icon: 'Layers', color: '#8b5cf6', personas: ['QA Leader', 'Developer'], stages: ['Create', 'Execute', 'Analyze'] },
+  { id: 'test-management', name: 'Test Management', category: 'Quality & Analytics', description: 'Central repository for manual and automated test cases.', icon: 'Layout', color: '#8b5cf6', personas: ['QA Leader', 'QE Manager'], stages: ['Plan', 'Design', 'Create'] },
+  { id: 'accessibility', name: 'Accessibility Testing', category: 'Web Testing', description: 'Automated WCAG and ADA compliance checks.', icon: 'Accessibility', color: '#3b82f6', personas: ['QA Leader', 'Manual Tester'], stages: ['Create', 'Execute', 'Analyze'] },
+  { id: 'website-scanner', name: 'Website Scanner', category: 'Web Testing', description: 'Sitewide automated scanning for quality issues.', icon: 'Search', color: '#3b82f6', personas: ['QE Manager'], stages: ['Execute', 'Analyze'] },
+  { id: 'reporting-analytics', name: 'Test Reporting & Analytics', category: 'Quality & Analytics', description: 'AI-powered failure categorization and insights.', icon: 'BarChart', color: '#8b5cf6', personas: ['QA Leader', 'QE Manager'], stages: ['Analyze', 'Maintain'] },
+  { id: 'turboscale', name: 'Turboscale', category: 'Platform & Scale', description: 'High-speed distributed Selenium grid.', icon: 'TrendingUp', color: '#f59e0b', personas: ['Automation Engineer'], stages: ['Execute'] },
+  { id: 'enterprise', name: 'Enterprise Features', category: 'Platform & Scale', description: 'SSO, IP Whitelisting, and Private Clouds.', icon: 'Shield', color: '#f59e0b', personas: ['QA Leader'], stages: ['Plan', 'Maintain'] }
+];
+
+const AGENTS = [
+  { id: 'gen-agent', name: 'Test Case Generator', stage: 'Create', impact: '90% faster authoring', description: 'Generates test cases from PRDs and user stories.', products: ['test-management'] },
+  { id: 'healing-agent', name: 'Self-Healing', stage: 'Execute', impact: '40% fewer breakages', description: 'Automatically repairs brittle selectors at runtime.', products: ['automate', 'app-automate'] },
+  { id: 'failure-agent', name: 'Failure Analysis', stage: 'Analyze', impact: '75% faster triage', description: 'Clusters failures and suggests root causes.', products: ['automate', 'app-automate', 'reporting-analytics'] },
+  { id: 'selection-agent', name: 'Test Selection', stage: 'Execute', impact: '50% faster CI', description: 'Predicts high-risk tests based on code changes.', products: ['automate', 'test-management'] },
+  { id: 'visual-agent', name: 'Visual Review', stage: 'Analyze', impact: '10x faster review', description: 'Classifies visual diffs and suppresses noise.', products: ['percy'] }
+];
+
+const CATEGORIES = [
+  { id: 'Web Testing', color: '#3b82f6', icon: 'Globe' },
+  { id: 'Mobile Testing', color: '#10b981', icon: 'Smartphone' },
+  { id: 'Quality & Analytics', color: '#8b5cf6', icon: 'Activity' },
+  { id: 'Platform & Scale', color: '#f59e0b', icon: 'Box' },
+  { id: 'AI Platform', color: '#ec4899', icon: 'Zap' }
+];
+
+// --- Components ---
+
+const Icon = ({ name, size = 18, className = "" }) => {
+  const LucideIcon = lucide[name] || Globe;
+  return <LucideIcon size={size} className={className} />;
+};
+
+const Node = ({ node, isSelected, onClick, position }) => (
+  <div 
+    className={`absolute node-card cursor-pointer p-4 glass rounded-xl flex flex-col items-center justify-center text-center w-32 h-32 ${isSelected ? 'node-selected scale-110 z-10' : 'opacity-80 hover:opacity-100'}`}
+    style={{ left: position.x, top: position.y, background: isSelected ? `${node.color}33` : undefined, borderColor: isSelected ? node.color : 'rgba(255,255,255,0.1)' }}
+    onClick={(e) => { e.stopPropagation(); onClick(node); }}
+  >
+    <div class="mb-2 p-2 rounded-lg" style={{ background: `${node.color}22`, color: node.color }}>
+      <Icon name={node.icon} size={24} />
+    </div>
+    <span class="text-xs font-bold leading-tight line-clamp-2">{node.name}</span>
+    {node.category === 'AI Platform' && <div class="mt-1 flex gap-1"><Zap size={10} class="text-pink-500 fill-pink-500" /></div>}
+  </div>
+);
+
+const DetailPanel = ({ entity, onClose }) => {
+  if (!entity) return null;
+  const isAgent = !!entity.stage;
+  
+  return (
+    <div className="w-96 glass border-l border-white/10 h-full flex flex-col slide-in overflow-y-auto">
+      <div class="p-6 border-b border-white/10 flex justify-between items-start">
+        <div>
+          <span class="text-[10px] uppercase tracking-widest font-bold text-bs-teal mb-1 block">
+            {isAgent ? 'AI Agent' : entity.category}
+          </span>
+          <h2 class="text-2xl font-extrabold">{entity.name}</h2>
+        </div>
+        <button onClick={onClose} class="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white">
+          <X size={20} />
+        </button>
+      </div>
+      
+      <div class="p-6 space-y-8">
+        <div>
+          <p class="text-gray-300 leading-relaxed">{entity.description}</p>
+        </div>
+
+        {isAgent && (
+          <div class="p-4 bg-pink-500/10 border border-pink-500/20 rounded-xl">
+            <h4 class="text-xs font-bold text-pink-400 uppercase mb-2 flex items-center gap-2">
+              <Zap size={14} class="fill-pink-400" /> Quantified Impact
+            </h4>
+            <p class="text-lg font-bold text-white">{entity.impact}</p>
+          </div>
+        )}
+
+        {!isAgent && entity.aiAgents?.length > 0 && (
+          <div>
+            <h3 class="text-sm font-bold text-gray-400 mb-3 flex items-center gap-2 uppercase tracking-tight">
+              <Zap size={16} class="text-pink-500" /> AI Capabilities
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {entity.aiAgents.map(aid => (
+                <span key={aid} class="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full text-xs font-medium">
+                  {AGENTS.find(a => a.id === aid)?.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h3 class="text-sm font-bold text-gray-400 mb-3 uppercase tracking-tight">Target Personas</h3>
+          <div class="flex flex-wrap gap-2">
+            {entity.personas?.map(p => (
+              <span key={p} class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-300">
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <a href="#" class="btn-primary w-full flex items-center justify-center gap-2">
+            View Documentation <ExternalLink size={16} />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Wizard = ({ onFinish, onClose }) => {
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState({ persona: '', apps: [], priorities: [] });
+
+  const personas = ['QA Leader', 'QE Manager', 'Developer', 'QA Tester'];
+  const priorities = ['Speed', 'Coverage', 'Cost Reduction', 'AI Insights', 'Compliance'];
+  const appTypes = ['Web', 'Mobile App', 'API', 'Content Site'];
+
+  const next = () => step < 4 ? setStep(step + 1) : onFinish(data);
+  const toggle = (field, val) => {
+    const curr = data[field];
+    setData({ ...data, [field]: curr.includes(val) ? curr.filter(x => x !== val) : [...curr, val] });
+  };
+
+  return (
+    <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div class="w-full max-w-2xl glass rounded-3xl overflow-hidden shadow-2xl flex flex-col fade-in">
+        <div class="p-8 border-b border-white/10 flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold text-bs-teal uppercase mb-1 block">Step {step} of 4</span>
+            <h3 class="text-2xl font-bold">Build your testing stack</h3>
+          </div>
+          <button onClick={onClose} class="text-gray-500 hover:text-white"><X /></button>
+        </div>
+
+        <div class="p-8 min-h-[400px]">
+          {step === 1 && (
+            <div class="wizard-step space-y-6">
+              <h4 class="text-xl font-medium text-gray-200">Who are you?</h4>
+              <div class="grid grid-cols-2 gap-4">
+                {personas.map(p => (
+                  <button 
+                    key={p} 
+                    onClick={() => setData({...data, persona: p})}
+                    class={`p-6 rounded-2xl border-2 text-left transition-all ${data.persona === p ? 'border-bs-blue bg-bs-blue/10' : 'border-white/10 hover:border-white/30'}`}
+                  >
+                    <span class="text-lg font-bold">{p}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {step === 2 && (
+            <div class="wizard-step space-y-6">
+              <h4 class="text-xl font-medium text-gray-200">What do you test?</h4>
+              <div class="grid grid-cols-2 gap-4">
+                {appTypes.map(t => (
+                  <button 
+                    key={t} 
+                    onClick={() => toggle('apps', t)}
+                    class={`p-6 rounded-2xl border-2 text-left transition-all ${data.apps.includes(t) ? 'border-bs-blue bg-bs-blue/10' : 'border-white/10 hover:border-white/30'}`}
+                  >
+                    <span class="text-lg font-bold">{t}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {step === 3 && (
+            <div class="wizard-step space-y-6">
+              <h4 class="text-xl font-medium text-gray-200">What are your top priorities?</h4>
+              <div class="flex flex-wrap gap-3">
+                {priorities.map(p => (
+                  <button 
+                    key={p} 
+                    onClick={() => toggle('priorities', p)}
+                    class={`px-6 py-3 rounded-full border-2 transition-all ${data.priorities.includes(p) ? 'border-bs-orange bg-bs-orange/10 text-bs-orange' : 'border-white/10 text-gray-400'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {step === 4 && (
+            <div class="wizard-step space-y-6 text-center">
+              <div class="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle size={40} />
+              </div>
+              <h4 class="text-2xl font-bold">Stack ready for review!</h4>
+              <p class="text-gray-400">We've identified the perfect combination of products and AI agents for your team.</p>
+              <div class="p-6 glass rounded-2xl text-left bg-white/5">
+                <p class="text-sm text-gray-500 mb-1">Recommended Configuration:</p>
+                <p class="text-lg font-bold text-bs-teal">High-Velocity Web & Mobile Stack</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div class="p-8 bg-white/5 flex justify-between">
+          <button onClick={() => setStep(s => Math.max(1, s-1))} disabled={step === 1} class="text-gray-400 hover:text-white disabled:opacity-0">Back</button>
+          <button onClick={next} class="btn-primary px-12">{step === 4 ? 'Apply to Map' : 'Continue'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main App ---
+
+const App = () => {
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [view, setView] = useState('ecosystem'); // ecosystem, lifecycle, integrations
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [config, setConfig] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+
+  const nodes = useMemo(() => {
+    const center = { x: 500, y: 400 };
+    const radius = 300;
+    return [
+      { id: 'center', name: 'BrowserStack Test Platform', icon: 'Layers', color: '#1a56db', category: 'center', position: center },
+      ...PRODUCTS.map((p, i) => {
+        const angle = (i / PRODUCTS.length) * Math.PI * 2;
+        return { ...p, position: { 
+          x: center.x + Math.cos(angle) * radius, 
+          y: center.y + Math.sin(angle) * radius 
+        }};
+      })
+    ];
+  }, []);
+
+  const handleDrag = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastPos.current.x;
+    const dy = e.clientY - lastPos.current.y;
+    setPan(p => ({ x: p.x + dx, y: p.y + dy }));
+    lastPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleContactSales = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    btn.innerText = 'Sending...';
+    
+    // Simulate API call
+    setTimeout(() => {
+      alert('Config sent to rgaikwad919@gmail.com! Rahul will reach out shortly.');
+      btn.disabled = false;
+      btn.innerText = 'Contact Sales';
+      setIsDrawerOpen(false);
+    }, 1500);
+  };
+
+  return (
+    <div class="h-screen w-screen flex flex-col overflow-hidden bg-gray-950 selection:bg-bs-blue/30">
+      {/* Top Nav */}
+      <nav class="h-16 px-6 border-b border-white/10 flex items-center justify-between glass z-50">
+        <div class="flex items-center gap-8">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-bs-blue rounded-lg flex items-center justify-center font-black italic">BS</div>
+            <span class="font-bold tracking-tight text-lg">Ecosystem</span>
+          </div>
+          <div class="flex gap-1">
+            {['Ecosystem', 'AI Lifecycle', 'Integrations'].map(t => (
+              <button 
+                key={t}
+                onClick={() => setView(t.toLowerCase().split(' ')[0])}
+                class={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${view === t.toLowerCase().split(' ')[0] ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <button onClick={() => setIsWizardOpen(true)} class="btn-secondary">Build My Stack</button>
+          <div class="w-8 h-8 rounded-full bg-bs-orange flex items-center justify-center text-[10px] font-bold">RG</div>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main class="flex-1 flex overflow-hidden relative">
+        {view === 'ecosystem' && (
+          <div 
+            class="flex-1 ecosystem-map relative bg-gray-950 overflow-hidden"
+            onMouseDown={(e) => { setIsDragging(true); lastPos.current = { x: e.clientX, y: e.clientY }; }}
+            onMouseMove={handleDrag}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            onClick={() => setSelectedNode(null)}
+          >
+            <div class="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #333 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+            
+            <div 
+              class="relative transition-transform duration-75" 
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
+            >
+              {/* SVG Links */}
+              <svg class="absolute inset-0 pointer-events-none overflow-visible" style={{ width: 2000, height: 2000 }}>
+                {nodes.filter(n => n.id !== 'center').map(n => (
+                  <line 
+                    key={n.id}
+                    x1={500 + 64} y1={400 + 64}
+                    x2={n.position.x + 64} y2={n.position.y + 64}
+                    stroke={selectedNode?.id === n.id ? n.color : "rgba(255,255,255,0.05)"}
+                    strokeWidth={selectedNode?.id === n.id ? 2 : 1}
+                  />
+                ))}
+              </svg>
+
+              {nodes.map(n => (
+                <Node 
+                  key={n.id} 
+                  node={n} 
+                  isSelected={selectedNode?.id === n.id} 
+                  onClick={setSelectedNode}
+                  position={n.position}
+                />
+              ))}
+            </div>
+
+            {/* Float Controls */}
+            <div class="absolute bottom-6 left-6 flex gap-2">
+              <button class="p-3 glass rounded-xl hover:bg-white/10" onClick={() => setPan({x:0, y:0})}><Maximize size={18} /></button>
+              <button class="p-3 glass rounded-xl hover:bg-white/10"><ZoomIn size={18} /></button>
+              <button class="p-3 glass rounded-xl hover:bg-white/10"><ZoomOut size={18} /></button>
+            </div>
+          </div>
+        )}
+
+        {view === 'lifecycle' && (
+          <div class="flex-1 p-12 overflow-y-auto bg-gray-950 hero-gradient">
+            <div class="max-w-6xl mx-auto">
+              <div class="mb-12">
+                <h2 class="text-4xl font-extrabold mb-4">AI Across the Testing Lifecycle</h2>
+                <p class="text-xl text-gray-400">20+ AI agents working together to automate, heal, and analyze every step.</p>
+              </div>
+
+              <div class="grid grid-cols-6 gap-4 mb-8">
+                {['Plan', 'Design', 'Create', 'Execute', 'Analyze', 'Maintain'].map(s => (
+                  <div key={s} class="text-center font-bold text-xs uppercase tracking-widest text-bs-teal border-b-2 border-bs-teal/30 pb-4">
+                    {s}
+                  </div>
+                ))}
+              </div>
+
+              <div class="flex gap-4">
+                {['Plan', 'Design', 'Create', 'Execute', 'Analyze', 'Maintain'].map(s => (
+                  <div key={s} class="flex-1 space-y-4">
+                    {AGENTS.filter(a => a.stage === s).map(agent => (
+                      <div 
+                        key={agent.id}
+                        onClick={() => { setSelectedNode(agent); setView('ecosystem'); }}
+                        class="lifecycle-card glass p-4 rounded-2xl border-l-4 border-pink-500 cursor-pointer"
+                      >
+                        <h4 class="font-bold text-sm mb-1">{agent.name}</h4>
+                        <div class="text-[10px] text-pink-400 font-bold mb-2">{agent.impact}</div>
+                        <p class="text-[11px] text-gray-400 leading-snug">{agent.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedNode && <DetailPanel entity={selectedNode} onClose={() => setSelectedNode(null)} />}
+      </main>
+
+      {/* Floating CTA / Drawer */}
+      <div 
+        className={`fixed inset-y-0 right-0 w-[450px] z-[60] glass bg-gray-950/95 border-l border-white/10 shadow-2xl drawer ${isDrawerOpen ? 'drawer-open' : 'drawer-closed'}`}
+      >
+        <div class="p-8 h-full flex flex-col">
+          <div class="flex justify-between items-start mb-10">
+            <div>
+              <h3 class="text-2xl font-black mb-1 italic">Rahul Gaikwad</h3>
+              <p class="text-sm text-gray-400 font-medium">Commercial Account Executive</p>
+            </div>
+            <button onClick={() => setIsDrawerOpen(false)} class="p-2 hover:bg-white/10 rounded-full"><X /></button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto space-y-8 pr-2">
+            <div class="p-6 bg-bs-blue/10 border border-bs-blue/20 rounded-3xl">
+              <h4 class="text-xs font-bold text-bs-teal uppercase mb-4 flex items-center gap-2">
+                <Box size={14} /> Recommended Stack
+              </h4>
+              <p class="text-xl font-bold mb-6">High-Velocity Web & Mobile Stack</p>
+              
+              <div class="space-y-4">
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-400">Persona</span>
+                  <span class="font-bold text-white">{config?.persona || 'QA Leader'}</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-400">Applications</span>
+                  <span class="font-bold text-white">Web, Mobile App</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <span class="text-gray-400">Top Priority</span>
+                  <span class="font-bold text-bs-orange">Speed & AI Insights</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <h4 class="text-sm font-bold text-gray-400 uppercase tracking-tight">Configuration Snapshot</h4>
+              <div class="p-4 bg-black rounded-xl font-mono text-[11px] text-green-400 border border-white/5 overflow-x-auto">
+                {JSON.stringify({
+                  customer: "Rahul's Client",
+                  products: ['automate', 'app-automate', 'percy', 'test-management'],
+                  ai_enabled: true,
+                  agents: ['healing-agent', 'failure-agent', 'selection-agent']
+                }, null, 2)}
+              </div>
+            </div>
+
+            <form onSubmit={handleContactSales} class="space-y-4 pt-4 border-t border-white/10">
+              <h4 class="text-sm font-bold text-gray-200">Request more information</h4>
+              <input type="text" placeholder="Work Email" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-bs-blue outline-none" required />
+              <textarea placeholder="Tell us about your current testing challenges..." class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm focus:border-bs-blue outline-none h-32" required></textarea>
+              <button type="submit" class="btn-primary w-full py-4 text-lg">Send Config to Rahul</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {!isDrawerOpen && (
+        <button 
+          onClick={() => setIsDrawerOpen(true)}
+          class="fixed bottom-8 right-8 btn-primary flex items-center gap-3 px-8 py-5 rounded-full shadow-2xl z-40 hover:scale-105"
+        >
+          <Box size={24} />
+          <span class="text-lg font-bold">View My Stack</span>
+        </button>
+      )}
+
+      {isWizardOpen && <Wizard onClose={() => setIsWizardOpen(false)} onFinish={(d) => { setConfig(d); setIsWizardOpen(false); setIsDrawerOpen(true); }} />}
+    </div>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
