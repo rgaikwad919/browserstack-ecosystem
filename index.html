@@ -11,7 +11,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-    body { font-family: 'Inter', sans-serif; background: #06080a; color: #fff; overflow: hidden; margin: 0; height: 100vh; width: 100vw; }
+    body { font-family: 'Inter', sans-serif; background: #06080a; color: #fff; overflow: auto; margin: 0; min-height: 100vh; width: 100vw; }
     .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
     .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
     .text-bs-pink { color: #f97316; }
@@ -47,7 +47,6 @@
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useEffect, useMemo, useRef } = React;
-
     const PRODUCTS = [
       { id: 'live', name: 'Live', category: 'Manual Web', color: '#3b82f6', icon: 'Globe', description: 'Instant interactive access to 3,000+ real browsers and OS combinations for manual testing.', features: ['3,000+ Real Browsers', 'Local Testing support', 'Geolocation testing', 'Natural Gestures'], integrations: ['Test Management', 'Local Testing', 'Accessibility'], stages: ['Execute'], status: 'Real Devices' },
       { id: 'automate', name: 'Automate', category: 'Web Automation', color: '#1a56db', icon: 'Terminal', description: 'Scalable cloud grid for Selenium, Playwright, and Cypress tests on real devices with AI-powered features.', features: ['Selenium/Playwright/Cypress', 'AI Self-Healing', 'Automate TurboScale', 'Parallel Execution'], integrations: ['Test Observability', 'Local Testing', 'CI/CD Pipelines'], stages: ['Create', 'Execute'], status: 'AI Powered' },
@@ -63,7 +62,6 @@
       { id: 'local', name: 'Local Testing', category: 'Connectivity', color: '#64748b', icon: 'Shield', description: 'Secure, persistent tunnel to test internal development or staging servers behind firewalls.', features: ['Encrypted Tunneling', 'Zero Firewall Config', 'Support for Proxy/VPN', 'Binary & npm support'], integrations: ['Live', 'Automate', 'App Live'], stages: ['Create', 'Execute'], status: 'Secure' },
       { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], status: 'Private', link: 'https://www.browserstack.com/custom-device-lab' }
     ];
-
     const CONNECTIONS = [
       { from: 'live', to: 'management', type: 'Reporting' }, { from: 'automate', to: 'observability', type: 'Insights' }, { from: 'app-live', to: 'management', type: 'Reporting' },
       { from: 'app-automate', to: 'observability', type: 'Insights' }, { from: 'percy', to: 'automate', type: 'Visual Sync' }, { from: 'observability', to: 'qei', type: 'Intelligence' },
@@ -71,18 +69,15 @@
       { from: 'local', to: 'automate', type: 'Tunnel' }, { from: 'local', to: 'live', type: 'Tunnel' }, { from: 'bug-capture', to: 'management', type: 'Bug Sync' },
       { from: 'custom-devices', to: 'live', type: 'Infra' }, { from: 'custom-devices', to: 'automate', type: 'Infra' }
     ];
-
     const AI_TIMELINE = [
       { stage: 'Create', agent: 'GenAI Scripting', impact: '10x Faster' },
       { stage: 'Execute', agent: 'Self-Healing AI', impact: 'Zero Flaky' },
       { stage: 'Analyze', agent: 'AI Failure Analysis', impact: 'Root Cause' }
     ];
-
     const Icon = ({ name, size = 18, className }) => {
       useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
       return <i data-lucide={name.toLowerCase()} className={className} style={{ width: size, height: size }}></i>;
     };
-
     const DetailPanel = ({ entity, onClose }) => {
       if (!entity) return null;
       const related = CONNECTIONS.filter(c => c.from === entity.id || c.to === entity.id);
@@ -102,7 +97,6 @@
               <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest mt-2">{entity.category}</div>
             </div>
           </div>
-
           <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
             <p className="text-gray-300 text-base mb-10 leading-relaxed font-medium">{entity.description}</p>
             
@@ -117,14 +111,12 @@
                 ))}
               </div>
             </div>
-
             {entity.link && (
               <a href={entity.link} target="_blank" className="flex items-center justify-between p-4 rounded-2xl bg-bs-blue/10 border border-bs-blue/30 mb-10 group hover:bg-bs-blue/20 transition-all">
                 <span className="font-bold text-xs uppercase tracking-wider text-bs-blue">Explore Documentation</span>
                 <Icon name="ExternalLink" size={14} className="text-bs-blue group-hover:scale-110 transition-transform" />
               </a>
             )}
-
             <div className="mb-10">
               <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Ecosystem Connections</h3>
               <div className="flex flex-col gap-2">
@@ -149,7 +141,6 @@
         </div>
       );
     };
-
     const Wizard = ({ onClose, onComplete }) => {
       const [step, setStep] = useState(0);
       const options = [
@@ -157,12 +148,10 @@
         { q: "What is your biggest pain point?", choices: ["Test Flakiness", "Slow Release Cycles", "Maintenance Overhead", "Compliance / Security"] },
         { q: "Scale of operations?", choices: ["Early Stage", "Growth / Scale", "Enterprise"] }
       ];
-
       const handleBuild = () => {
         onComplete(['automate', 'management', 'qei']);
         onClose();
       };
-
       return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bs-dark/80 backdrop-blur-md p-10 animate-in">
           <div className="w-full max-w-xl glass rounded-[40px] p-10 wizard-gradient border-bs-blue/20 shadow-[0_0_100px_rgba(26,86,219,0.2)]">
@@ -172,7 +161,6 @@
               </div>
               <button onClick={onClose}><Icon name="X" className="text-gray-500 hover:text-white" /></button>
             </div>
-
             {step < 3 ? (
               <div>
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-8">{options[step].q}</h2>
@@ -198,7 +186,6 @@
         </div>
       );
     };
-
     const ContactWidget = () => {
       const [expanded, setExpanded] = useState(false);
       return (
@@ -232,7 +219,6 @@
         </div>
       );
     };
-
     const App = () => {
       const [selected, setSelected] = useState(null);
       const [hovered, setHovered] = useState(null);
@@ -241,16 +227,14 @@
       const [searchTerm, setSearchTerm] = useState('');
       const [recommended, setRecommended] = useState([]);
       const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-
       useEffect(() => {
         const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
       }, []);
-
       const nodes = useMemo(() => {
         const centerX = dimensions.width / 2;
-        const centerY = dimensions.height / 2;
+        const centerY = Math.max(dimensions.height / 2, 400); // Push ring up or ensure minimum height
         const ringProducts = PRODUCTS.filter(p => p.id !== 'custom-devices' && p.id !== 'local');
         const ringIds = ringProducts.map(p => p.id);
         
@@ -264,7 +248,6 @@
           return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
         });
       }, [dimensions]);
-
       const filteredProducts = useMemo(() => {
         if (!searchTerm) return PRODUCTS;
         const term = searchTerm.toLowerCase();
@@ -274,7 +257,6 @@
           p.description.toLowerCase().includes(term)
         );
       }, [searchTerm]);
-
       const isNodeActive = (n) => {
         if (recommended.length > 0) return recommended.includes(n.id);
         if (searchTerm) return filteredProducts.some(p => p.id === n.id);
@@ -284,9 +266,8 @@
         if (selected) return n.id === selected.id || CONNECTIONS.some(c => (c.from === selected.id && c.to === n.id) || (c.to === selected.id && c.from === n.id));
         return true;
       };
-
       return (
-        <div className="h-screen w-screen flex flex-col bg-bs-dark overflow-hidden select-none relative" onClick={() => { setSelected(null); setRecommended([]); }}>
+        <div className="min-h-screen w-screen flex flex-col bg-bs-dark overflow-auto select-none relative" onClick={() => { setSelected(null); setRecommended([]); }}>
           <header className="h-20 glass flex items-center justify-between px-10 z-40 shrink-0 border-b border-white/5">
             <div className="flex items-center gap-10">
               <div className="flex items-center gap-4">
@@ -308,7 +289,6 @@
                 />
               </div>
             </div>
-
             <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 hidden lg:flex">
               {AI_TIMELINE.map(t => (
                 <div key={t.stage} className="px-5 py-1.5 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
@@ -317,7 +297,6 @@
                 </div>
               ))}
             </div>
-
             <div className="flex items-center gap-4">
               <button onClick={(e) => { e.stopPropagation(); setShowWizard(true); }} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all">
                 <Icon name="Sparkles" size={12} className="text-bs-blue" /> Build My Stack
@@ -325,8 +304,7 @@
               <button className="bg-bs-blue px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-0.5 transition-all"> Demo </button>
             </div>
           </header>
-
-          <main className="flex-1 relative overflow-hidden">
+          <main className="flex-1 relative overflow-visible min-h-[850px] pb-40">
             <div className="absolute inset-0">
               <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
                 {CONNECTIONS.map((c, i) => {
@@ -338,7 +316,6 @@
                   );
                 })}
               </svg>
-
               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 glass w-56 h-56 rounded-[4rem] flex flex-col items-center justify-center p-8 border-bs-blue/30 text-center shadow-[0_0_100px_rgba(26,86,219,0.2)] z-10 node-pulse group cursor-help">
                 <div className="w-14 h-14 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-4 border border-bs-blue/30 group-hover:scale-110 transition-transform">
                   <Icon name="Box" size={36} className="text-bs-blue" />
@@ -346,13 +323,11 @@
                 <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
                 <div className="absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-black text-gray-400 uppercase tracking-widest bg-bs-dark/80 px-4 py-2 rounded-full border border-white/10">3,000+ Real Browsers & Devices</div>
               </div>
-
               {nodes.map(n => {
                 const isActive = isNodeActive(n);
                 const isSelected = selected?.id === n.id;
                 const isInfra = n.id === 'custom-devices' || n.id === 'local';
                 const isRecommended = recommended.includes(n.id);
-
                 return (
                   <div key={n.id} onClick={e => { e.stopPropagation(); setSelected(n); setRecommended([]); }} onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(null)} className={`absolute cursor-pointer transition-all duration-700 transform -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'scale-110 z-30' : 'scale-100 z-20'}`} style={{ left: n.pos.x, top: n.pos.y, opacity: isActive ? 1 : (searchTerm || recommended.length > 0) ? 0.05 : 0.15 }} >
                     <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-44 py-8 border-dashed opacity-70' : 'w-40'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/20 border-bs-blue shadow-[0_0_40px_rgba(26,86,219,0.3)]' : hovered?.id === n.id ? 'border-white/30 bg-white/10' : 'border-white/5'}`}>
@@ -367,7 +342,6 @@
                 );
               })}
             </div>
-
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 glass px-12 py-5 rounded-full flex items-center gap-12 z-30 shadow-2xl border border-white/10">
               {['Plan', 'Design', 'Create', 'Execute', 'Analyze', 'Maintain'].map(s => (
                 <div key={s} onMouseEnter={() => { setActiveStage(s); setRecommended([]); }} onMouseLeave={() => setActiveStage(null)} className="flex flex-col items-center gap-2.5 group cursor-pointer transition-all hover:-translate-y-1">
@@ -376,16 +350,13 @@
                 </div>
               ))}
             </div>
-
             <DetailPanel entity={selected} onClose={() => setSelected(null)} />
             {showWizard && <Wizard onClose={() => setShowWizard(false)} onComplete={setRecommended} />}
           </main>
-          
           <ContactWidget />
         </div>
       );
     };
-
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
