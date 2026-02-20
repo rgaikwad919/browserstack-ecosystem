@@ -30,8 +30,7 @@
     .node-pulse { animation: pulse 3s infinite alternate; }
     @keyframes pulse { from { box-shadow: 0 0 15px rgba(26,86,219,0.05); } to { box-shadow: 0 0 45px rgba(26,86,219,0.2); } }
     .wizard-gradient { background: radial-gradient(circle at top right, rgba(249,115,22,0.1), transparent), radial-gradient(circle at bottom left, rgba(26,86,219,0.1), transparent); }
-    .contact-widget { transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
-    .contact-widget.expanded { width: 320px; border-radius: 2rem; padding: 1.5rem; }
+    .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
   </style>
   <script>
     tailwind.config = {
@@ -44,25 +43,25 @@
     }
   </script>
 </head>
-<body>
+<body class="grid-bg">
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useEffect, useMemo, useRef } = React;
 
     const PRODUCTS = [
-      { id: 'live', name: 'Live', category: 'Manual Web', color: '#3b82f6', icon: 'Globe', description: 'Instant interactive access to 3,000+ real browsers and OS combinations for manual testing.', features: ['3,000+ Real Browsers', 'Local Testing support', 'Geolocation testing', 'Natural Gestures'], integrations: ['Test Management', 'Local Testing', 'Accessibility'], stages: ['Execute'] },
-      { id: 'automate', name: 'Automate', category: 'Web Automation', color: '#1a56db', icon: 'Terminal', description: 'Scalable cloud grid for Selenium, Playwright, and Cypress tests on real devices with AI-powered features.', features: ['Selenium/Playwright/Cypress', 'AI Self-Healing', 'Automate TurboScale', 'Parallel Execution'], integrations: ['Test Observability', 'Local Testing', 'CI/CD Pipelines'], stages: ['Create', 'Execute'] },
-      { id: 'app-live', name: 'App Live', category: 'Manual Mobile', color: '#3b82f6', icon: 'Smartphone', description: 'Interactive manual testing of native and hybrid mobile apps on a massive real device cloud.', features: ['iOS & Android Real Devices', 'Install via Play Store/App Store', 'Biometric testing', 'Direct Install'], integrations: ['Test Management', 'Local Testing'], stages: ['Execute'] },
-      { id: 'app-automate', name: 'App Automate', category: 'Mobile Automation', color: '#1a56db', icon: 'Cpu', description: 'Automated mobile app testing for Appium, Espresso, and XCUITest on thousands of real devices.', features: ['Appium/Espresso/XCUITest', 'Native App Profiling', 'Real-time debugging', 'Network simulation'], integrations: ['Test Observability', 'CI/CD Pipelines'], stages: ['Create', 'Execute'] },
-      { id: 'percy', name: 'Percy', category: 'Visual Testing', color: '#ec4899', icon: 'Eye', description: 'AI-powered visual testing and review platform to automate visual diffs across every commit.', features: ['AI-powered noise reduction', 'Cross-browser visual testing', 'Side-by-side diffs', 'SDKs for 20+ frameworks'], integrations: ['Automate', 'App Automate', 'GitHub/GitLab'], stages: ['Create', 'Execute', 'Analyze'] },
-      { id: 'observability', name: 'Test Observability', category: 'Analytics', color: '#a855f7', icon: 'BarChart3', description: 'Real-time AI-powered failure analysis and testing insights to optimize your QA cycles.', features: ['Smart Failure Analysis', 'Automatic Flakiness Detection', 'Customizable Dashboards', 'Root Cause Analysis'], integrations: ['Automate', 'App Automate', 'Test Management', 'QEI'], stages: ['Analyze', 'Maintain'] },
-      { id: 'qei', name: 'QE Insights', category: 'Intelligence', color: '#8b5cf6', icon: 'BrainCircuit', description: 'Executive-grade quality intelligence layer centralizing coverage, quality, and velocity metrics.', features: ['Unified Net Quality Score', 'Executive Dashboards', 'Identify Delivery Bottlenecks', 'ROI Tracking', 'Key Wins Identification', 'Actionable Focus Areas'], integrations: ['Test Management', 'Test Observability', 'Jira/CI Tools'], stages: ['Analyze', 'Maintain'] },
-      { id: 'management', name: 'Test Management', category: 'Planning', color: '#ef4444', icon: 'ClipboardCheck', description: 'Unified test case management to create, manage, and track manual and automated tests with Jira.', features: ['AI-powered case creation', 'Two-way Jira Sync', 'Centralized Test Repository', 'Execution Tracking'], integrations: ['Live', 'Automate', 'Jira', 'QEI'], stages: ['Plan', 'Analyze'] },
-      { id: 'accessibility', name: 'Accessibility', category: 'Compliance', color: '#10b981', icon: 'CheckCircle', description: 'Integrated accessibility testing to identify and fix compliance issues (WCAG) faster.', features: ['Automated Workflow Scanning', 'Assisted Manual Audits', 'Reporting & Compliance', 'DevTools Integration'], integrations: ['Live', 'Automate', 'Test Observability'], stages: ['Execute', 'Analyze'] },
-      { id: 'low-code', name: 'Low Code', category: 'AI Automation', color: '#f97316', icon: 'Zap', description: 'Next-gen low-code automation platform to build robust tests without writing a single line of code.', features: ['Recorder-based authoring', 'AI Self-healing', 'Visual execution', 'Instant Cloud execution'], integrations: ['Automate', 'Test Management'], stages: ['Design', 'Create'] },
-      { id: 'bug-capture', name: 'Bug Capture', category: 'Reporting', color: '#f43f5e', icon: 'Camera', description: 'Instant bug reporting and screen recording tool that captures technical logs and network data.', features: ['Screen Recording', 'Network/Console Logs', 'One-click Jira Sync', 'Annotate Diffs'], integrations: ['Live', 'App Live', 'Jira'], stages: ['Execute', 'Analyze'] },
-      { id: 'local', name: 'Local Testing', category: 'Connectivity', color: '#64748b', icon: 'Shield', description: 'Secure, persistent tunnel to test internal development or staging servers behind firewalls.', features: ['Encrypted Tunneling', 'Zero Firewall Config', 'Support for Proxy/VPN', 'Binary & npm support'], integrations: ['Live', 'Automate', 'App Live'], stages: ['Create', 'Execute'] },
-      { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], link: 'https://www.browserstack.com/custom-device-lab' }
+      { id: 'live', name: 'Live', category: 'Manual Web', color: '#3b82f6', icon: 'Globe', description: 'Instant interactive access to 3,000+ real browsers and OS combinations for manual testing.', features: ['3,000+ Real Browsers', 'Local Testing support', 'Geolocation testing', 'Natural Gestures'], integrations: ['Test Management', 'Local Testing', 'Accessibility'], stages: ['Execute'], status: 'Real Devices' },
+      { id: 'automate', name: 'Automate', category: 'Web Automation', color: '#1a56db', icon: 'Terminal', description: 'Scalable cloud grid for Selenium, Playwright, and Cypress tests on real devices with AI-powered features.', features: ['Selenium/Playwright/Cypress', 'AI Self-Healing', 'Automate TurboScale', 'Parallel Execution'], integrations: ['Test Observability', 'Local Testing', 'CI/CD Pipelines'], stages: ['Create', 'Execute'], status: 'AI Powered' },
+      { id: 'app-live', name: 'App Live', category: 'Manual Mobile', color: '#3b82f6', icon: 'Smartphone', description: 'Interactive manual testing of native and hybrid mobile apps on a massive real device cloud.', features: ['iOS & Android Real Devices', 'Install via Play Store/App Store', 'Biometric testing', 'Direct Install'], integrations: ['Test Management', 'Local Testing'], stages: ['Execute'], status: 'Real Devices' },
+      { id: 'app-automate', name: 'App Automate', category: 'Mobile Automation', color: '#1a56db', icon: 'Cpu', description: 'Automated mobile app testing for Appium, Espresso, and XCUITest on thousands of real devices.', features: ['Appium/Espresso/XCUITest', 'Native App Profiling', 'Real-time debugging', 'Network simulation'], integrations: ['Test Observability', 'CI/CD Pipelines'], stages: ['Create', 'Execute'], status: 'Enterprise' },
+      { id: 'percy', name: 'Percy', category: 'Visual Testing', color: '#ec4899', icon: 'Eye', description: 'AI-powered visual testing and review platform to automate visual diffs across every commit.', features: ['AI-powered noise reduction', 'Cross-browser visual testing', 'Side-by-side diffs', 'SDKs for 20+ frameworks'], integrations: ['Automate', 'App Automate', 'GitHub/GitLab'], stages: ['Create', 'Execute', 'Analyze'], status: 'AI Powered' },
+      { id: 'observability', name: 'Test Observability', category: 'Analytics', color: '#a855f7', icon: 'BarChart3', description: 'Real-time AI-powered failure analysis and testing insights to optimize your QA cycles.', features: ['Smart Failure Analysis', 'Automatic Flakiness Detection', 'Customizable Dashboards', 'Root Cause Analysis'], integrations: ['Automate', 'App Automate', 'Test Management', 'QEI'], stages: ['Analyze', 'Maintain'], status: 'Insights' },
+      { id: 'qei', name: 'QE Insights', category: 'Intelligence', color: '#8b5cf6', icon: 'BrainCircuit', description: 'Executive-grade quality intelligence layer centralizing coverage, quality, and velocity metrics.', features: ['Unified Net Quality Score', 'Executive Dashboards', 'Identify Delivery Bottlenecks', 'ROI Tracking', 'Key Wins Identification', 'Actionable Focus Areas'], integrations: ['Test Management', 'Test Observability', 'Jira/CI Tools'], stages: ['Analyze', 'Maintain'], status: 'Executive' },
+      { id: 'management', name: 'Test Management', category: 'Planning', color: '#ef4444', icon: 'ClipboardCheck', description: 'Unified test case management to create, manage, and track manual and automated tests with Jira.', features: ['AI-powered case creation', 'Two-way Jira Sync', 'Centralized Test Repository', 'Execution Tracking'], integrations: ['Live', 'Automate', 'Jira', 'QEI'], stages: ['Plan', 'Analyze'], status: 'Unified' },
+      { id: 'accessibility', name: 'Accessibility', category: 'Compliance', color: '#10b981', icon: 'CheckCircle', description: 'Integrated accessibility testing to identify and fix compliance issues (WCAG) faster.', features: ['Automated Workflow Scanning', 'Assisted Manual Audits', 'Reporting & Compliance', 'DevTools Integration'], integrations: ['Live', 'Automate', 'Test Observability'], stages: ['Execute', 'Analyze'], status: 'WCAG' },
+      { id: 'low-code', name: 'Low Code', category: 'AI Automation', color: '#f97316', icon: 'Zap', description: 'Next-gen low-code automation platform to build robust tests without writing a single line of code.', features: ['Recorder-based authoring', 'AI Self-healing', 'Visual execution', 'Instant Cloud execution'], integrations: ['Automate', 'Test Management'], stages: ['Design', 'Create'], status: 'AI Powered' },
+      { id: 'bug-capture', name: 'Bug Capture', category: 'Reporting', color: '#f43f5e', icon: 'Camera', description: 'Instant bug reporting and screen recording tool that captures technical logs and network data.', features: ['Screen Recording', 'Network/Console Logs', 'One-click Jira Sync', 'Annotate Diffs'], integrations: ['Live', 'App Live', 'Jira'], stages: ['Execute', 'Analyze'], status: 'Rapid' },
+      { id: 'local', name: 'Local Testing', category: 'Connectivity', color: '#64748b', icon: 'Shield', description: 'Secure, persistent tunnel to test internal development or staging servers behind firewalls.', features: ['Encrypted Tunneling', 'Zero Firewall Config', 'Support for Proxy/VPN', 'Binary & npm support'], integrations: ['Live', 'Automate', 'App Live'], stages: ['Create', 'Execute'], status: 'Secure' },
+      { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], status: 'Private', link: 'https://www.browserstack.com/custom-device-lab' }
     ];
 
     const CONNECTIONS = [
@@ -107,29 +106,27 @@
           <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
             <p className="text-gray-300 text-base mb-10 leading-relaxed font-medium">{entity.description}</p>
             
-            {entity.features && (
-              <div className="mb-10">
-                <h3 className="text-[9px] font-black text-white uppercase tracking-[0.3em] mb-4 flex items-center gap-2 opacity-50">Capabilities</h3>
-                <div className="grid grid-cols-1 gap-2">
-                  {entity.features.map(f => (
-                    <div key={f} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 text-[11px] font-bold hover:bg-white/[0.08] transition-all">
-                      <div className="w-1 h-1 rounded-full bg-bs-pink shadow-[0_0_8px_#f97316]"></div>
-                      {f}
-                    </div>
-                  ))}
-                </div>
+            <div className="mb-10">
+              <h3 className="text-[9px] font-black text-white uppercase tracking-[0.3em] mb-4 flex items-center gap-2 opacity-50">Capabilities</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {entity.features.map(f => (
+                  <div key={f} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 text-[11px] font-bold hover:bg-white/[0.08] transition-all">
+                    <div className="w-1 h-1 rounded-full bg-bs-pink shadow-[0_0_8px_#f97316]"></div>
+                    {f}
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
             {entity.link && (
               <a href={entity.link} target="_blank" className="flex items-center justify-between p-4 rounded-2xl bg-bs-blue/10 border border-bs-blue/30 mb-10 group hover:bg-bs-blue/20 transition-all">
-                <span className="font-bold text-xs uppercase tracking-wider">Explore Infrastructure</span>
+                <span className="font-bold text-xs uppercase tracking-wider text-bs-blue">Explore Documentation</span>
                 <Icon name="ExternalLink" size={14} className="text-bs-blue group-hover:scale-110 transition-transform" />
               </a>
             )}
 
             <div className="mb-10">
-              <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Connections</h3>
+              <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Ecosystem Connections</h3>
               <div className="flex flex-col gap-2">
                 {related.map((c, i) => {
                   const other = PRODUCTS.find(p => p.id === (c.from === entity.id ? c.to : c.from));
@@ -214,7 +211,7 @@
                 <div className="flex items-center gap-4">
                   <img src="https://ui-avatars.com/api/?name=Rahul+Gaikwad&background=1a56db&color=fff" className="w-12 h-12 rounded-2xl shadow-xl border border-white/10" />
                   <div>
-                    <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest leading-none mb-1">Account Manager</div>
+                    <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest leading-none mb-1">Account Executive</div>
                     <div className="text-lg font-black leading-none tracking-tighter italic">Rahul Gaikwad</div>
                   </div>
                 </div>
@@ -223,11 +220,11 @@
               <div className="grid grid-cols-1 gap-3">
                 <a href="mailto:rgaikwad919@gmail.com" className="flex items-center gap-4 p-4 rounded-2xl bg-bs-blue/10 border border-bs-blue/30 hover:bg-bs-blue transition-all group">
                   <Icon name="Mail" size={18} className="text-bs-blue group-hover:text-white" />
-                  <span className="text-xs font-bold uppercase tracking-widest">Email Rahul</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-white">Email Rahul</span>
                 </a>
                 <a href="tel:+16506811445" className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
                   <Icon name="Phone" size={18} className="text-gray-400 group-hover:text-white" />
-                  <span className="text-xs font-bold uppercase tracking-widest">+1 (650) 681-1445</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-white">+1 (650) 681-1445</span>
                 </a>
               </div>
             </div>
@@ -258,12 +255,12 @@
         const ringIds = ringProducts.map(p => p.id);
         
         return PRODUCTS.map((p, i) => {
-          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 380, y: centerY + 220 } };
-          if (p.id === 'local') return { ...p, pos: { x: centerX - 380, y: centerY + 220 } };
+          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 420, y: centerY + 240 } };
+          if (p.id === 'local') return { ...p, pos: { x: centerX - 420, y: centerY + 240 } };
           
           const ringIndex = ringIds.indexOf(p.id);
           const angle = (ringIndex / ringIds.length) * 2 * Math.PI - Math.PI/2;
-          const radius = Math.min(dimensions.width * 0.22, 280);
+          const radius = Math.min(dimensions.width * 0.22, 300);
           return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
         });
       }, [dimensions]);
@@ -289,9 +286,9 @@
       };
 
       return (
-        <div className="h-screen w-screen flex flex-col bg-bs-dark overflow-hidden select-none relative" onClick={() => setRecommended([])}>
+        <div className="h-screen w-screen flex flex-col bg-bs-dark overflow-hidden select-none relative" onClick={() => { setSelected(null); setRecommended([]); }}>
           <header className="h-20 glass flex items-center justify-between px-10 z-40 shrink-0 border-b border-white/5">
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-10">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-bs-blue rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(26,86,219,0.2)]">
                   <Icon name="Layers" size={24} />
@@ -300,15 +297,14 @@
                   BrowserStack <span className="text-bs-pink">Ecosystem</span>
                 </h1>
               </div>
-              <div className="relative group hidden xl:block">
+              <div className="relative group hidden md:block" onClick={e => e.stopPropagation()}>
                 <Icon name="Search" size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-bs-blue transition-colors" />
                 <input 
                   type="text" 
-                  placeholder="Find products, capabilities..." 
+                  placeholder="Find products..." 
                   className="bg-white/5 border border-white/10 rounded-full py-2.5 pl-12 pr-6 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:border-bs-blue/50 focus:bg-white/[0.08] transition-all w-64"
                   value={searchTerm}
                   onChange={(e) => { setSearchTerm(e.target.value); setRecommended([]); }}
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
@@ -330,7 +326,7 @@
             </div>
           </header>
 
-          <main className="flex-1 relative overflow-hidden bg-[radial-gradient(circle_at_center,_rgba(26,86,219,0.05)_0%,_transparent_80%)]">
+          <main className="flex-1 relative overflow-hidden">
             <div className="absolute inset-0">
               <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
                 {CONNECTIONS.map((c, i) => {
@@ -343,12 +339,12 @@
                 })}
               </svg>
 
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 glass w-52 h-52 rounded-[3.5rem] flex flex-col items-center justify-center p-8 border-bs-blue/30 text-center shadow-[0_0_80px_rgba(26,86,219,0.15)] z-10 node-pulse">
-                <div className="w-12 h-12 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-4 border border-bs-blue/30">
-                  <Icon name="Box" size={32} className="text-bs-blue" />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 glass w-56 h-56 rounded-[4rem] flex flex-col items-center justify-center p-8 border-bs-blue/30 text-center shadow-[0_0_100px_rgba(26,86,219,0.2)] z-10 node-pulse group cursor-help">
+                <div className="w-14 h-14 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-4 border border-bs-blue/30 group-hover:scale-110 transition-transform">
+                  <Icon name="Box" size={36} className="text-bs-blue" />
                 </div>
                 <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
-                <p className="text-[8px] text-gray-500 uppercase font-black tracking-ultra-wide mt-4">Quality Hub</p>
+                <div className="absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-black text-gray-400 uppercase tracking-widest bg-bs-dark/80 px-4 py-2 rounded-full border border-white/10">3,000+ Real Browsers & Devices</div>
               </div>
 
               {nodes.map(n => {
@@ -359,11 +355,12 @@
 
                 return (
                   <div key={n.id} onClick={e => { e.stopPropagation(); setSelected(n); setRecommended([]); }} onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(null)} className={`absolute cursor-pointer transition-all duration-700 transform -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'scale-110 z-30' : 'scale-100 z-20'}`} style={{ left: n.pos.x, top: n.pos.y, opacity: isActive ? 1 : (searchTerm || recommended.length > 0) ? 0.05 : 0.15 }} >
-                    <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-40 py-6 border-dashed opacity-70' : 'w-36'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/20 border-bs-blue shadow-[0_0_40px_rgba(26,86,219,0.3)]' : hovered?.id === n.id ? 'border-white/30 bg-white/10' : 'border-white/5'}`}>
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${n.color}15`, color: n.color }}>
+                    <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-44 py-8 border-dashed opacity-70' : 'w-40'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/20 border-bs-blue shadow-[0_0_40px_rgba(26,86,219,0.3)]' : hovered?.id === n.id ? 'border-white/30 bg-white/10' : 'border-white/5'}`}>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg relative" style={{ backgroundColor: `${n.color}15`, color: n.color }}>
                         <Icon name={n.icon} size={24} />
+                        {n.status && <div className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-md bg-bs-pink text-[6px] text-white font-black uppercase tracking-tighter shadow-lg">{n.status}</div>}
                       </div>
-                      <h3 className="font-black text-[11px] tracking-tight leading-tight uppercase italic">{n.name}</h3>
+                      <h3 className="font-black text-[12px] tracking-tight leading-tight uppercase italic text-white">{n.name}</h3>
                       <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{n.category}</div>
                     </div>
                   </div>
