@@ -1,340 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Build Your Ideal Stack | BrowserStack</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0d1117;
-            color: #fff;
-            margin: 0;
-            min-height: 100vh;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .card-hover:hover {
-            box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
-            border-color: rgba(249, 115, 22, 0.5);
-            transform: translateY(-2px);
-        }
-        .selected-card {
-            border-color: #f97316 !important;
-            box-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
-        }
-        .step-transition {
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
-        .animate-in { animation: fadeIn 0.8s forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build Your Ideal Stack | BrowserStack</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; background: #0d1117; color: #fff; margin: 0; min-height: 100vh; }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .card-hover:hover { box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); border-color: rgba(249, 115, 22, 0.5); transform: translateY(-2px); }
+    .selected-card { border-color: #f97316 !important; box-shadow: 0 0 10px rgba(249, 115, 22, 0.2); }
+    .step-transition { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+  <div id="root"></div>
+  <script type="text/babel">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { 'bs-blue': '#1a56db', 'bs-pink': '#f97316' }
+        }
+      }
+    };
 
-        const FEATURE_DATA = {
-            PLAN: [
-                { id: 'p1', name: 'Risk-Based Test Planning', description: 'Generates risk-scored test plans from backlogs and defect history, prioritizing high-risk areas', product: 'Test Management', ai: true },
-                { id: 'p2', name: 'Test Coverage Gap Analysis', description: 'Identifies features with insufficient test coverage and recommends where to add more tests', product: 'Test Management', ai: true },
-                { id: 'p3', name: 'QE Insights Dashboard', description: 'Executive-level quality intelligence; tracks trends, coverage, and team performance over time', product: 'QE Insights', ai: false },
-                { id: 'p4', name: 'Requirement Import (Jira/Confluence)', description: 'Import requirements from Jira or Confluence to seed test planning', product: 'Test Management', ai: false }
-            ],
-            DESIGN: [
-                { id: 'd1', name: 'AI Test Case Generator', description: 'Generates complete test cases (steps, expected results, priority) from PRDs, Confluence pages, PDFs, or Jira issues', product: 'Test Management / Testing Toolkit', ai: true },
-                { id: 'd2', name: 'BDD Format Support', description: 'Write and organize test cases in Gherkin/BDD format', product: 'Test Management', ai: false },
-                { id: 'd3', name: 'Test Data Generation', description: 'Auto-generates realistic, boundary, and negative test data sets from schema/field metadata', product: 'Test Management', ai: true },
-                { id: 'd4', name: 'Visual Overlay (Figma Comparison)', description: 'Compare live UI against Figma designs side-by-side directly in browser', product: 'Testing Toolkit', ai: false }
-            ],
-            CREATE: [
-                { id: 'c1', name: 'GenAI Script Authoring', description: 'Write Selenium/Playwright/Cypress automation scripts using natural language prompts', product: 'Automate', ai: true },
-                { id: 'c2', name: 'Low-Code Recorder (Web)', description: 'Record browser interactions and auto-generate no-code test flows without writing a single line', product: 'Low Code Automation', ai: false },
-                { id: 'c3', name: 'Low-Code Authoring Agent', description: 'Converts manual test cases or natural language into executable low-code automation flows', product: 'Low Code Automation', ai: true },
-                { id: 'c4', name: 'Manual-to-Automation Migration', description: 'Transforms existing manual test cases into automation-ready low-code definitions', product: 'Test Management / Low Code', ai: true },
-                { id: 'c5', name: 'Cross-Device Script Generation', description: 'Creates test flows that execute robustly across multiple real iOS and Android devices', product: 'App Automate', ai: true },
-                { id: 'c6', name: 'AI Test Case Generator (in-browser)', description: 'In-browser test case generation while manually exploring your app in Chrome', product: 'Testing Toolkit', ai: true },
-                { id: 'c7', name: 'Test Deduplication', description: 'Detects redundant test cases and recommends consolidations to reduce suite bloat', product: 'Test Management', ai: true }
-            ],
-            EXECUTE: [
-                { id: 'e1', name: 'Cross-Browser Testing (Manual)', description: 'Real-time interactive testing on 3000+ real browsers and OS combinations', product: 'Live', ai: false },
-                { id: 'e2', name: 'Cross-Browser Automation', description: 'Run Selenium, Playwright, Cypress tests in parallel at scale on real browsers', product: 'Automate', ai: false },
-                { id: 'e3', name: 'Real Device Manual Testing (Mobile)', description: 'Test iOS and Android apps manually on real physical devices', product: 'App Live', ai: false },
-                { id: 'e4', name: 'Mobile App Automation', description: 'Run automated mobile tests on real devices using any major framework (Appium/Espresso/XCUITest/Maestro)', product: 'App Automate', ai: false },
-                { id: 'e5', name: 'Network Condition Simulation', description: 'Simulate 2G/3G/LTE network profiles during test execution', product: 'Automate / App Automate', ai: false },
-                { id: 'e6', name: 'Geolocation Testing', description: 'Test location-based features by switching IP geolocation', product: 'Live / Automate', ai: false },
-                { id: 'e7', name: 'Push Notifications Testing', description: 'Validate push notification behavior on real iOS and Android devices', product: 'App Live', ai: false },
-                { id: 'e8', name: 'Camera & Image Injection', description: 'Upload images as camera input to test camera-dependent app flows', product: 'App Live', ai: false },
-                { id: 'e9', name: 'Automate TurboScale', description: 'Cloud-hosted or self-hosted browser grid for Selenium/Playwright/Cypress at enterprise scale', product: 'Automate TurboScale', ai: false },
-                { id: 'e10', name: 'Self-Healing Automation', description: 'Automatically detects and repairs failing locators during test runs without human intervention', product: 'Automate / App Automate / Low Code', ai: true },
-                { id: 'e11', name: 'Smart Test Selection', description: 'AI predicts which tests are most likely to fail for a given code change, reducing CI test volume by 50-70%', product: 'Automate / App Automate', ai: true },
-                { id: 'e12', name: 'Local Testing', description: 'Securely test locally hosted or internal staging environments on BrowserStack', product: 'Local Testing', ai: false },
-                { id: 'e13', name: 'Private Device Lab', description: 'Dedicated real devices with custom MDM, SIM-based testing, and persistent app sessions', product: 'Custom Device Lab', ai: false }
-            ],
-            ANALYZE: [
-                { id: 'a1', name: 'AI Failure Analysis & Categorization', description: 'Clusters test failures by root cause and explains them in plain language — replaces hours of log reading', product: 'Test Observability / Test Management', ai: true },
-                { id: 'a2', name: 'Test Reporting & Analytics Dashboard', description: 'Unified smart dashboards with CI triggers, timeline debugging, flakiness tracking, and Jira bug filing', product: 'Test Observability', ai: false },
-                { id: 'a3', name: 'Visual Diff Review (Percy Web)', description: 'Automated visual regression diffs with CI integration; intelligent noise suppression to surface real UI bugs', product: 'Percy', ai: true },
-                { id: 'a4', name: 'Visual Testing for Native Apps', description: 'Visual regression snapshots for iOS and Android native apps with CI integration', product: 'App Percy', ai: false },
-                { id: 'a5', name: 'App Performance Profiling', description: 'Capture real-world app performance metrics under different network and geolocation conditions', product: 'App Frontend Performance', ai: false },
-                { id: 'a6', name: 'Accessibility Issue Detection (Web)', description: 'Automatically detects WCAG A/AA violations across web app flows including keyboard, contrast, and ARIA issues', product: 'Web Accessibility Testing', ai: true },
-                { id: 'a7', name: 'Accessibility Issue Detection (Mobile)', description: 'Analyzes app screens for accessibility issues; supports TalkBack and VoiceOver flows on real devices', product: 'App Accessibility Testing', ai: true },
-                { id: 'a8', name: 'Website Scanner', description: 'Crawls entire site to detect accessibility, broken links, SEO, performance, and responsive issues across all pages', product: 'Website Scanner', ai: true },
-                { id: 'a9', name: 'Requestly API Client', description: 'Test and debug APIs with collections, environments, scripting, and Postman/cURL import', product: 'Requestly', ai: false },
-                { id: 'a10', name: 'HTTP Interceptor & Mock APIs', description: 'Intercept, modify, redirect, or mock HTTP requests and API responses for testing backend-not-ready scenarios', product: 'Requestly', ai: false }
-            ],
-            MAINTAIN: [
-                { id: 'm1', name: 'Test Maintenance Agent', description: 'Continuously scans test suites for flaky, obsolete, or low-value tests and recommends clean-up actions', product: 'Automate / Test Management', ai: true },
-                { id: 'm2', name: 'Test Deduplication & Suite Cleanup', description: 'Clusters redundant tests by semantic similarity and suggests which to merge, keep, or retire', product: 'Test Management', ai: true },
-                { id: 'm3', name: 'Self-Healing Locator Suggestions', description: 'Surfaces recommended permanent locator fixes so code stays resilient after self-healing events', product: 'Automate / App Automate', ai: true },
-                { id: 'm4', name: 'Accessibility Remediation Guidance', description: 'For each detected accessibility issue, provides exact code snippets and ARIA fix instructions for developers', product: 'Web Accessibility / App Accessibility / Website Scanner', ai: true },
-                { id: 'm5', name: 'Visual Test Integration Recommendations', description: 'Recommends which pages and components need new visual snapshots based on change frequency and risk', product: 'Percy', ai: true },
-                { id: 'm6', name: 'Quality Gates in CI', description: 'Block deployments automatically when test quality thresholds are not met', product: 'Test Management / Test Observability', ai: false },
-                { id: 'm7', name: 'BrowserStack SDK', description: 'Plug-and-play integration layer that enables parallel orchestration, stability improvements, and TRA connectivity', product: 'BrowserStack SDK', ai: false }
-            ]
-        };
+    const { useState, useEffect, useMemo } = React;
 
-        const Icon = ({ name, size = 18, className }) => {
-            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
-            return <i data-lucide={name.toLowerCase()} className={className} style={{ width: size, height: size }}></i>;
-        };
+    const DATA = {
+      roles: ['QA Manager', 'Lead Engineer', 'SDET', 'VP of Engineering'],
+      challenges: ['Slow cycles', 'High costs', 'Flaky tests', 'Fragmented tools'],
+      tabs: [
+        { id: 'web', label: 'Web', icon: 'Globe', products: ['Automate', 'Live', 'Low Code'] },
+        { id: 'mobile', label: 'Mobile', icon: 'Smartphone', products: ['App Automate', 'App Live'] },
+        { id: 'visual', label: 'Visual', icon: 'Eye', products: ['Percy'] },
+        { id: 'analytics', label: 'Analytics', icon: 'BarChart3', products: ['Test Observability', 'QE Insights'] },
+        { id: 'mgmt', label: 'Management', icon: 'ClipboardCheck', products: ['Test Management', 'Bug Capture'] },
+        { id: 'infra', label: 'Foundational', icon: 'Shield', products: ['Local Testing', 'Custom Devices'] }
+      ]
+    };
 
-        const App = () => {
-            const [step, setStep] = useState(1);
-            const [role, setRole] = useState(null);
-            const [challenge, setChallenge] = useState(null);
-            const [activeTabs, setActiveTabs] = useState(['PLAN']);
-            const [selectedFeatures, setSelectedFeatures] = useState([]);
-            const [showResults, setShowResults] = useState(false);
+    const Icon = ({ name, size = 20, className }) => {
+      useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+      return <i data-lucide={name.toLowerCase()} className={className} style={{ width: size, height: size }}></i>;
+    };
 
-            const toggleTab = (tab) => {
-                if (activeTabs.includes(tab)) {
-                    if (activeTabs.length > 1) {
-                        setActiveTabs(activeTabs.filter(t => t !== tab));
-                    }
-                } else {
-                    setActiveTabs([...activeTabs, tab]);
-                }
-            };
+    const App = () => {
+      const [step, setStep] = useState(1);
+      const [role, setRole] = useState('');
+      const [challenge, setChallenge] = useState('');
+      const [selectedProducts, setSelectedProducts] = useState([]);
+      const [activeTab, setActiveTab] = useState('web');
 
-            const toggleFeature = (feature) => {
-                if (selectedFeatures.find(f => f.id === feature.id)) {
-                    setSelectedFeatures(selectedFeatures.filter(f => f.id !== feature.id));
-                } else {
-                    setSelectedFeatures([...selectedFeatures, feature]);
-                }
-            };
+      const toggleProduct = (p) => {
+        setSelectedProducts(prev => 
+          prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]
+        );
+      };
 
-            const getResults = () => {
-                const products = new Set();
-                selectedFeatures.forEach(f => {
-                    f.product.split(' / ').forEach(p => products.add(p));
-                });
-                return Array.from(products);
-            };
+      const aiImpact = useMemo(() => {
+        const aiProducts = ['Automate', 'Percy', 'Test Observability', 'QE Insights', 'Low Code'];
+        const count = selectedProducts.filter(p => aiProducts.includes(p)).length;
+        return Math.min(count * 20 + 20, 98);
+      }, [selectedProducts]);
 
-            const reset = () => {
-                setStep(1);
-                setRole(null);
-                setChallenge(null);
-                setActiveTabs(['PLAN']);
-                setSelectedFeatures([]);
-                setShowResults(false);
-            };
+      return (
+        <div className="min-h-screen bg-[#0d1117] text-white p-6 md:p-12">
+          <div className="flex justify-between items-center mb-16">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-bs-blue rounded-xl flex items-center justify-center">
+                <Icon name="Layers" size={24} />
+              </div>
+              <h1 className="text-xl font-black italic uppercase tracking-tighter">
+                BrowserStack <span className="text-bs-pink">Stack Builder</span>
+              </h1>
+            </div>
+            <a href="index.html" className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+              Back to Ecosystem
+            </a>
+          </div>
 
-            const Progress = () => (
-                <div className="flex justify-center gap-2 mb-12">
-                    {[1, 2, 3].map(s => (
-                        <div key={s} className={`h-1 rounded-full transition-all duration-500 ${s <= step ? 'w-12 bg-orange-500' : 'w-6 bg-white/10'}`}></div>
-                    ))}
-                    <div className="ml-4 text-[10px] font-black uppercase tracking-widest text-white/40">Step {step} of 3</div>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-2 mb-12">
+              {[1, 2, 3, 4].map(s => (
+                <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? 'w-24 bg-bs-pink' : 'w-12 bg-white/10'}`}></div>
+              ))}
+              <div className="ml-auto text-[10px] font-black uppercase tracking-widest text-gray-500">Step {step} of 4</div>
+            </div>
+
+            {step === 1 && (
+              <div className="animate-in">
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">What's your role?</h2>
+                <p className="text-gray-400 mb-12">Select your primary function to help us tailor recommendations.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {DATA.roles.map(r => (
+                    <button 
+                      key={r}
+                      onClick={() => { setRole(r); setStep(2); }}
+                      className="glass p-8 rounded-3xl text-left card-hover group transition-all"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-black uppercase italic tracking-tight leading-none">{r}</span>
+                        <Icon name="ArrowRight" className="opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all text-bs-pink" />
+                      </div>
+                    </button>
+                  ))}
                 </div>
-            );
+              </div>
+            )}
 
-            return (
-                <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen flex flex-col">
-                    <header className="flex justify-between items-center mb-16">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                                <Icon name="Layers" size={20} />
-                            </div>
-                            <h1 className="font-black italic uppercase text-xl tracking-tighter text-white">
-                                BrowserStack <span className="text-orange-500">Stack Builder</span>
-                            </h1>
-                        </div>
-                        <a href="index.html" className="text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors flex items-center gap-2">
-                            <Icon name="ArrowLeft" size={12} /> Back to Ecosystem
-                        </a>
-                    </header>
-
-                    {step === 1 && (
-                        <div className="flex-1 flex flex-col items-center justify-center animate-in">
-                            <Progress />
-                            <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-12 text-center text-white">What's your role?</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-                                {[
-                                    { id: 'qa-leader', name: 'QA Leader', icon: 'ShieldCheck' },
-                                    { id: 'dev-qa-mgr', name: 'Development & QA Manager', icon: 'Users' },
-                                    { id: 'end-user', name: 'End User', icon: 'User' }
-                                ].map(r => (
-                                    <button 
-                                        key={r.id}
-                                        onClick={() => { setRole(r.id); setStep(2); }}
-                                        className="glass p-10 rounded-3xl flex flex-col items-center gap-6 card-hover group transition-all"
-                                    >
-                                        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
-                                            <Icon name={r.icon} size={32} className="text-white group-hover:text-orange-500" />
-                                        </div>
-                                        <span className="font-bold text-lg uppercase tracking-tight italic text-white">{r.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {step === 2 && (
-                        <div className="flex-1 flex flex-col items-center justify-center animate-in">
-                            <Progress />
-                            <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-12 text-center text-white">What are your major challenges?</h2>
-                            <div className="grid grid-cols-1 gap-4 w-full max-w-2xl">
-                                {[
-                                    "Slow test execution & long CI feedback loops",
-                                    "Flaky tests & high maintenance overhead",
-                                    "Insufficient test coverage across browsers & devices",
-                                    "No visibility into test quality & failure root causes",
-                                    "Manual testing bottlenecks & lack of automation"
-                                ].map((c, idx) => (
-                                    <button 
-                                        key={idx}
-                                        onClick={() => { setChallenge(c); setStep(3); }}
-                                        className="glass p-6 rounded-2xl text-left flex items-center gap-6 card-hover group transition-all"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors shrink-0">
-                                            <span className="font-black text-white/20 group-hover:text-orange-500">{idx + 1}</span>
-                                        </div>
-                                        <span className="font-bold text-base uppercase tracking-tight italic text-white">{c}</span>
-                                    </button>
-                                ))}
-                            </div>
-                            <button onClick={() => setStep(1)} className="mt-12 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white flex items-center gap-2">
-                                <Icon name="ArrowLeft" size={12} /> Back
-                            </button>
-                        </div>
-                    )}
-
-                    {step === 3 && (
-                        <div className="flex-1 animate-in relative pb-32">
-                            <Progress />
-                            <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-12 text-center text-white">Build Your Ideal Stack</h2>
-                            
-                            <div className="flex flex-wrap justify-center gap-3 mb-12">
-                                {Object.keys(FEATURE_DATA).map(tab => (
-                                    <button 
-                                        key={tab}
-                                        onClick={() => toggleTab(tab)}
-                                        className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${activeTabs.includes(tab) ? 'bg-orange-500 border-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]' : 'bg-white/5 border-white/10 text-white/40 hover:border-white/30'}`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {activeTabs.flatMap(tab => FEATURE_DATA[tab]).map(feature => {
-                                    const isSelected = selectedFeatures.find(f => f.id === feature.id);
-                                    return (
-                                        <div 
-                                            key={feature.id}
-                                            onClick={() => toggleFeature(feature)}
-                                            className={`glass p-6 rounded-3xl cursor-pointer transition-all border-2 relative group ${isSelected ? 'selected-card bg-orange-500/5' : 'border-white/5 hover:border-white/20'}`}
-                                        >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-3 rounded-xl bg-white/5 group-hover:bg-orange-500/10 transition-colors">
-                                                    <Icon name={feature.ai ? "Zap" : "Box"} size={20} className={feature.ai ? "text-orange-500" : "text-white/40"} />
-                                                </div>
-                                                {feature.ai && (
-                                                    <span className="text-[8px] font-black uppercase bg-orange-500/20 text-orange-500 px-2 py-1 rounded-md tracking-widest">🤖 AI</span>
-                                                )}
-                                            </div>
-                                            <h3 className="font-black text-lg italic uppercase tracking-tighter mb-2 leading-tight text-white">{feature.name}</h3>
-                                            <p className="text-xs text-white/60 leading-relaxed group-hover:text-white/80 transition-all">{feature.description}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 z-50">
-                                <div className="glass rounded-full p-4 flex items-center justify-between shadow-2xl border border-orange-500/30 backdrop-blur-xl">
-                                    <div className="flex items-center gap-4 pl-6">
-                                        <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-black">
-                                            {selectedFeatures.length}
-                                        </div>
-                                        <span className="font-black uppercase italic tracking-tighter text-lg text-white">{selectedFeatures.length} features selected</span>
-                                    </div>
-                                    <button 
-                                        disabled={selectedFeatures.length === 0}
-                                        onClick={() => setShowResults(true)}
-                                        className={`px-12 py-4 rounded-full font-black uppercase tracking-widest text-xs transition-all ${selectedFeatures.length > 0 ? 'bg-orange-500 hover:scale-105 shadow-xl text-white' : 'bg-white/10 text-white/20 cursor-not-allowed'}`}
-                                    >
-                                        Submit Ideal Stack
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {showResults && (
-                        <div className="fixed inset-0 z-[100] bg-[#0d1117]/95 backdrop-blur-xl flex items-center justify-center p-6 animate-in">
-                            <div className="w-full max-w-2xl glass p-12 rounded-[40px] border-orange-500/30 shadow-[0_0_100px_rgba(249,115,22,0.1)] text-center">
-                                <div className="w-20 h-20 bg-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-3">
-                                    <Icon name="CheckCircle" size={40} className="text-white" />
-                                </div>
-                                <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4 leading-none text-white">✅ Your Ideal Stack Is Ready</h2>
-                                <p className="text-white/40 text-sm mb-12 uppercase tracking-[0.2em] font-bold">Recommended Products Based on Your Selection</p>
-                                
-                                <div className="grid grid-cols-2 gap-4 mb-12">
-                                    {getResults().map(p => (
-                                        <div key={p} className="p-5 rounded-2xl bg-white/5 border border-white/10 text-left flex items-center gap-4">
-                                            <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]"></div>
-                                            <span className="font-black uppercase italic tracking-tighter text-lg text-white">{p}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="bg-orange-500/10 p-8 rounded-3xl border border-orange-500/20 mb-12">
-                                    <p className="font-black uppercase tracking-[0.3em] text-orange-500 text-xs mb-2">Next Steps</p>
-                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter leading-none text-white">Contact your Account Manager to get started.</h3>
-                                </div>
-
-                                <button 
-                                    onClick={reset}
-                                    className="text-[10px] font-black uppercase tracking-[0.5em] text-white/40 hover:text-orange-500 transition-all"
-                                >
-                                    [ Start Over ]
-                                </button>
-                            </div>
-                        </div>
-                    )}
+            {step === 2 && (
+              <div className="animate-in">
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">Biggest Pain Point?</h2>
+                <p className="text-gray-400 mb-12">Which of these metrics do you need to improve most?</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {DATA.challenges.map(c => (
+                    <button 
+                      key={c}
+                      onClick={() => { setChallenge(c); setStep(3); }}
+                      className="glass p-8 rounded-3xl text-left card-hover group transition-all"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-black uppercase italic tracking-tight leading-none">{c}</span>
+                        <Icon name="Target" className="opacity-0 group-hover:opacity-100 transition-all text-bs-pink" />
+                      </div>
+                    </button>
+                  ))}
                 </div>
-            );
-        };
+              </div>
+            )}
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+            {step === 3 && (
+              <div className="animate-in">
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">Design Your Stack</h2>
+                <p className="text-gray-400 mb-12">Select the products you want to include in your ecosystem.</p>
+                
+                <div className="flex gap-2 overflow-x-auto pb-4 mb-8 custom-scrollbar">
+                  {DATA.tabs.map(t => (
+                    <button 
+                      key={t.id}
+                      onClick={() => setActiveTab(t.id)}
+                      className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${activeTab === t.id ? 'bg-bs-blue border-bs-blue text-white' : 'glass border-white/10 text-gray-500 hover:text-white'}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon name={t.icon} size={14} />
+                        {t.label}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 mb-12">
+                  {DATA.tabs.find(t => t.id === activeTab).products.map(p => (
+                    <div 
+                      key={p}
+                      onClick={() => toggleProduct(p)}
+                      className={`glass p-6 rounded-3xl cursor-pointer transition-all flex items-center justify-between border-2 ${selectedProducts.includes(p) ? 'border-bs-pink bg-bs-pink/5' : 'border-transparent hover:border-white/20'}`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${selectedProducts.includes(p) ? 'bg-bs-pink text-white' : 'bg-white/5 text-gray-400'}`}>
+                          <Icon name="Box" />
+                        </div>
+                        <div>
+                          <div className="font-black uppercase italic tracking-tight leading-none">{p}</div>
+                          {['Automate', 'Percy', 'Test Observability', 'QE Insights', 'Low Code'].includes(p) && (
+                            <div className="text-[8px] font-black text-bs-pink uppercase tracking-widest mt-1">AI Enabled</div>
+                          )}
+                        </div>
+                      </div>
+                      <Icon name={selectedProducts.includes(p) ? 'CheckCircle2' : 'Circle'} className={selectedProducts.includes(p) ? 'text-bs-pink' : 'text-white/10'} />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-between items-center bg-white/5 p-8 rounded-3xl border border-white/10">
+                  <div className="text-gray-400 text-sm">
+                    Selected: <span className="text-white font-bold">{selectedProducts.length} Products</span>
+                  </div>
+                  <button 
+                    disabled={selectedProducts.length === 0}
+                    onClick={() => setStep(4)}
+                    className="bg-bs-pink px-10 py-4 rounded-full font-black uppercase tracking-widest text-xs shadow-xl hover:scale-105 disabled:opacity-30 disabled:hover:scale-100 transition-all"
+                  >
+                    Generate Proposal
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="animate-in">
+                <div className="bg-bs-blue rounded-[40px] p-12 mb-8 relative overflow-hidden shadow-[0_0_100px_rgba(26,86,219,0.2)]">
+                  <div className="relative z-10">
+                    <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-8 leading-none">Your Stack is Ready</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-bs-pink mb-6 opacity-80">Configured For</div>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4">
+                            <Icon name="User" className="text-bs-pink" />
+                            <span className="font-bold text-lg">{role}</span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <Icon name="AlertCircle" className="text-bs-pink" />
+                            <span className="font-bold text-lg">Fix {challenge}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-black/20 p-8 rounded-3xl border border-white/5 text-center">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">AI Efficiency Score</div>
+                        <div className="text-6xl font-black italic text-bs-pink tracking-tighter">{aiImpact}%</div>
+                        <div className="h-1 w-full bg-white/10 rounded-full mt-6 overflow-hidden">
+                          <div className="h-full bg-bs-pink transition-all duration-1000" style={{ width: `${aiImpact}%` }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                  <div className="glass p-8 rounded-[30px] border-white/10">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-6">Product Components</h3>
+                    <div className="space-y-3">
+                      {selectedProducts.map(p => (
+                        <div key={p} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                          <span className="font-bold text-sm">{p}</span>
+                          <Icon name="Check" size={14} className="text-green-500" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="glass p-8 rounded-[30px] border-white/10">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-6">Next Steps</h3>
+                    <div className="space-y-4">
+                      <button className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-colors">Download PDF Proposal</button>
+                      <button className="w-full border border-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-colors">Book a Consultation</button>
+                      <button onClick={() => setStep(1)} className="w-full text-gray-500 py-4 font-black uppercase tracking-widest text-[9px] hover:text-white transition-colors">Start Over</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>
