@@ -53,20 +53,13 @@
       { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], status: 'Private', link: 'https://www.browserstack.com/custom-device-lab' }
     ];
     const CONNECTIONS = [
-      { from: 'live', to: 'management', type: 'Reporting' },
-      { from: 'automate', to: 'observability', type: 'Insights' },
-      { from: 'app-live', to: 'management', type: 'Reporting' },
-      { from: 'app-automate', to: 'observability', type: 'Insights' },
-      { from: 'percy', to: 'automate', type: 'Visual Sync' },
-      { from: 'observability', to: 'qei', type: 'Intelligence' },
-      { from: 'management', to: 'qei', type: 'Strategy' },
-      { from: 'low-code', to: 'automate', type: 'Execution' },
-      { from: 'accessibility', to: 'observability', type: 'Compliance' },
-      { from: 'local', to: 'automate', type: 'Tunnel' },
-      { from: 'local', to: 'live', type: 'Tunnel' },
-      { from: 'bug-capture', to: 'management', type: 'Bug Sync' },
-      { from: 'custom-devices', to: 'live', type: 'Infra' },
-      { from: 'custom-devices', to: 'automate', type: 'Infra' }
+      { from: 'live', to: 'management', type: 'Reporting' }, { from: 'automate', to: 'observability', type: 'Insights' },
+      { from: 'app-live', to: 'management', type: 'Reporting' }, { from: 'app-automate', to: 'observability', type: 'Insights' },
+      { from: 'percy', to: 'automate', type: 'Visual Sync' }, { from: 'observability', to: 'qei', type: 'Intelligence' },
+      { from: 'management', to: 'qei', type: 'Strategy' }, { from: 'low-code', to: 'automate', type: 'Execution' },
+      { from: 'accessibility', to: 'observability', type: 'Compliance' }, { from: 'local', to: 'automate', type: 'Tunnel' },
+      { from: 'local', to: 'live', type: 'Tunnel' }, { from: 'bug-capture', to: 'management', type: 'Bug Sync' },
+      { from: 'custom-devices', to: 'live', type: 'Infra' }, { from: 'custom-devices', to: 'automate', type: 'Infra' }
     ];
     const AI_TIMELINE = [
       { stage: 'Create', agent: 'GenAI Scripting', impact: '10x Faster' },
@@ -90,7 +83,7 @@
               <Icon name={entity.icon} size={32} />
             </div>
             <div>
-              <h2 className="text-4xl font-black uppercase italic leading-none tracking-tighter">{entity.name}</h2>
+              <h2 className="text-4xl font-black uppercase italic leading-[0.8] tracking-tighter">{entity.name}</h2>
               <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest mt-2">{entity.category}</div>
             </div>
           </div>
@@ -141,9 +134,7 @@
       const [expanded, setExpanded] = useState(false);
       return (
         <div className={`fixed bottom-8 right-8 z-[60] contact-widget glass border-bs-blue/30 shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center ${expanded ? 'expanded p-8 w-80 rounded-[2.5rem]' : 'w-14 h-14 rounded-full cursor-pointer hover:scale-110'}`} onClick={() => !expanded && setExpanded(true)}>
-          {!expanded ? (
-            <Icon name="Mail" size={24} className="text-bs-blue" />
-          ) : (
+          {!expanded ? ( <Icon name="Mail" size={24} className="text-bs-blue" /> ) : (
             <div className="w-full animate-in">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
@@ -182,20 +173,21 @@
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
       }, []);
-      const centerY = useMemo(() => Math.max(dimensions.height / 2, 600), [dimensions.height]);
+      const centerY = useMemo(() => Math.max(dimensions.height / 2, 500), [dimensions.height]);
+      const radiusX = useMemo(() => Math.max(480, Math.min(dimensions.width * 0.42, 620)), [dimensions.width]);
+      const radiusY = useMemo(() => Math.max(400, Math.min(dimensions.height * 0.4, 480)), [dimensions.height]);
       const nodes = useMemo(() => {
         const centerX = dimensions.width / 2;
         const ringProducts = PRODUCTS.filter(p => p.id !== 'custom-devices' && p.id !== 'local');
         const ringIds = ringProducts.map(p => p.id);
         return PRODUCTS.map((p, i) => {
-          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 560, y: centerY + 300 } };
-          if (p.id === 'local') return { ...p, pos: { x: centerX - 560, y: centerY + 300 } };
+          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + radiusX + 80, y: centerY + 280 } };
+          if (p.id === 'local') return { ...p, pos: { x: centerX - radiusX - 80, y: centerY + 280 } };
           const ringIndex = ringIds.indexOf(p.id);
           const angle = (ringIndex / ringIds.length) * 2 * Math.PI - Math.PI/2;
-          const radius = Math.max(520, Math.min(dimensions.width * 0.45, 680));
-          return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
+          return { ...p, pos: { x: centerX + radiusX * Math.cos(angle), y: centerY + radiusY * Math.sin(angle) } };
         });
-      }, [dimensions.width, centerY]);
+      }, [dimensions.width, centerY, radiusX, radiusY]);
       const isNodeActive = (n) => {
         if (recommended.length > 0) return recommended.includes(n.id);
         if (searchTerm) return n.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -229,13 +221,11 @@
               ))}
             </div>
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all">
-                <Icon name="Sparkles" size={12} className="text-bs-blue" /> Build My Stack
-              </button>
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all"> <Icon name="Sparkles" size={12} className="text-bs-blue" /> Build My Stack </button>
               <button className="bg-bs-blue px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-0.5 transition-all"> Demo </button>
             </div>
           </header>
-          <main className="flex-1 relative overflow-visible min-h-[1100px] pb-80">
+          <main className="flex-1 relative overflow-visible min-h-[1200px] pb-[500px]">
             <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
               {CONNECTIONS.map((c, i) => {
                 const f = nodes.find(n => n.id === c.from), t = nodes.find(n => n.id === c.to);
@@ -260,13 +250,13 @@
               const isRecommended = recommended.includes(n.id);
               return (
                 <div key={n.id} onClick={e => { e.stopPropagation(); setSelected(n); setRecommended([]); }} onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(null)} className={`absolute cursor-pointer transition-all duration-700 transform -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'scale-110 z-30' : 'scale-100 z-20'}`} style={{ left: n.pos.x, top: n.pos.y, opacity: isActive ? 1 : (searchTerm || recommended.length > 0) ? 0.05 : 0.15 }} >
-                  <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-48 py-10 border-dashed opacity-70' : 'w-44'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/25 border-bs-blue shadow-[0_0_50px_rgba(26,86,219,0.4)]' : hovered?.id === n.id ? 'border-white/40 bg-white/15' : 'border-white/5'}`}>
+                  <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-52 py-10 border-dashed opacity-70' : 'w-48'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/25 border-bs-blue shadow-[0_0_50px_rgba(26,86,219,0.4)]' : hovered?.id === n.id ? 'border-white/40 bg-white/15' : 'border-white/5'}`}>
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative" style={{ backgroundColor: `${n.color}20`, color: n.color }}>
                       <Icon name={n.icon} size={28} />
                       {n.status && <div className="absolute -top-1 -right-1 px-2 py-1 rounded-md bg-bs-pink text-[7px] text-white font-black uppercase tracking-tighter shadow-lg">{n.status}</div>}
                     </div>
                     <h3 className="font-black text-[13px] tracking-tight leading-tight uppercase italic text-white">{n.name}</h3>
-                    <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{n.category}</div>
+                    <div className="text-[9px] font-black text-gray-500 uppercase tracking-wider">{n.category}</div>
                   </div>
                 </div>
               );
