@@ -28,22 +28,14 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     .node-pulse { animation: pulse 3s infinite alternate; }
-    @keyframes pulse { from { box-shadow: 0 0 15px rgba(26,86,219,0.05); } to { box-shadow: 0 0 45px rgba(26,86,219,0.2); } }
+    @keyframes pulse { from { box-shadow: 0 0 25px rgba(26,86,219,0.1); } to { box-shadow: 0 0 65px rgba(26,86,219,0.3); } }
     .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { 'bs-blue': '#1a56db', 'bs-pink': '#f97316', 'bs-dark': '#06080a' },
-          letterSpacing: { 'ultra-wide': '0.3em' }
-        }
-      }
-    };
-
+    tailwind.config = { theme: { extend: { colors: { 'bs-blue': '#1a56db', 'bs-pink': '#f97316', 'bs-dark': '#06080a' }, letterSpacing: { 'ultra-wide': '0.3em' } } } };
     const { useState, useEffect, useMemo, useRef } = React;
     const PRODUCTS = [
       { id: 'live', name: 'Live', category: 'Manual Web', color: '#3b82f6', icon: 'Globe', description: 'Instant interactive access to 3,000+ real browsers and OS combinations for manual testing.', features: ['3,000+ Real Browsers', 'Local Testing support', 'Geolocation testing', 'Natural Gestures'], integrations: ['Test Management', 'Local Testing', 'Accessibility'], stages: ['Execute'], status: 'Real Devices' },
@@ -60,7 +52,6 @@
       { id: 'local', name: 'Local Testing', category: 'Connectivity', color: '#64748b', icon: 'Shield', description: 'Secure, persistent tunnel to test internal development or staging servers behind firewalls.', features: ['Encrypted Tunneling', 'Zero Firewall Config', 'Support for Proxy/VPN', 'Binary & npm support'], integrations: ['Live', 'Automate', 'App Live'], stages: ['Create', 'Execute'], status: 'Secure' },
       { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], status: 'Private', link: 'https://www.browserstack.com/custom-device-lab' }
     ];
-
     const CONNECTIONS = [
       { from: 'live', to: 'management', type: 'Reporting' },
       { from: 'automate', to: 'observability', type: 'Insights' },
@@ -77,7 +68,6 @@
       { from: 'custom-devices', to: 'live', type: 'Infra' },
       { from: 'custom-devices', to: 'automate', type: 'Infra' }
     ];
-
     const AI_TIMELINE = [
       { stage: 'Create', agent: 'GenAI Scripting', impact: '10x Faster' },
       { stage: 'Execute', agent: 'Self-Healing AI', impact: 'Zero Flaky' },
@@ -198,18 +188,18 @@
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
-      const centerY = useMemo(() => Math.max(dimensions.height / 2, 400), [dimensions.height]);
-
+      const centerY = useMemo(() => Math.max(dimensions.height / 2, 450), [dimensions.height]);
       const nodes = useMemo(() => {
         const centerX = dimensions.width / 2;
         const ringProducts = PRODUCTS.filter(p => p.id !== 'custom-devices' && p.id !== 'local');
         const ringIds = ringProducts.map(p => p.id);
         return PRODUCTS.map((p, i) => {
-          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 420, y: centerY + 240 } };
-          if (p.id === 'local') return { ...p, pos: { x: centerX - 420, y: centerY + 240 } };
+          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 500, y: centerY + 280 } };
+          if (p.id === 'local') return { ...p, pos: { x: centerX - 500, y: centerY + 280 } };
           const ringIndex = ringIds.indexOf(p.id);
           const angle = (ringIndex / ringIds.length) * 2 * Math.PI - Math.PI/2;
-          const radius = Math.min(dimensions.width * 0.22, 300);
+          // Increased radius to prevent overlap
+          const radius = Math.min(dimensions.width * 0.32, 450);
           return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
         });
       }, [dimensions.width, centerY]);
@@ -248,31 +238,32 @@
               ))}
             </div>
             <div className="flex items-center gap-4">
-              <a href="build-my-stack.html" className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all">
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all">
                 <Icon name="Sparkles" size={12} className="text-bs-blue" /> Build My Stack
-              </a>
+              </button>
               <button className="bg-bs-blue px-8 py-3 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-0.5 transition-all"> Demo </button>
             </div>
           </header>
 
-          <main className="flex-1 relative overflow-visible min-h-[850px] pb-60">
+          <main className="flex-1 relative overflow-visible min-h-[950px] pb-60">
             <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
               {CONNECTIONS.map((c, i) => {
                 const f = nodes.find(n => n.id === c.from), t = nodes.find(n => n.id === c.to);
                 if(!f || !t) return null;
                 const active = (selected?.id === c.from || selected?.id === c.to) || (hovered?.id === c.from || hovered?.id === c.to) || (recommended.includes(c.from) && recommended.includes(c.to));
                 return (
-                  <path key={i} d={`M ${f.pos.x} ${f.pos.y} Q ${(f.pos.x + t.pos.x)/2 + 40} ${(f.pos.y + t.pos.y)/2 - 40} ${t.pos.x} ${t.pos.y}`} fill="none" stroke={active ? '#f97316' : 'rgba(255,255,255,0.04)'} strokeWidth={active ? 2.5 : 1} className={`link-line ${active ? 'link-active' : ''}`} style={{ opacity: active ? 1 : 0.4 }} />
+                  <path key={i} d={`M ${f.pos.x} ${f.pos.y} Q ${(f.pos.x + t.pos.x)/2 + 60} ${(f.pos.y + t.pos.y)/2 - 60} ${t.pos.x} ${t.pos.y}`} fill="none" stroke={active ? '#f97316' : 'rgba(255,255,255,0.04)'} strokeWidth={active ? 2.5 : 1} className={`link-line ${active ? 'link-active' : ''}`} style={{ opacity: active ? 1 : 0.4 }} />
                 );
               })}
             </svg>
 
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 glass w-56 h-56 rounded-[4rem] flex flex-col items-center justify-center p-8 border-bs-blue/30 text-center shadow-[0_0_100px_rgba(26,86,219,0.2)] z-10 node-pulse group cursor-help" style={{ left: dimensions.width / 2, top: centerY }}>
-              <div className="w-14 h-14 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-4 border border-bs-blue/30 group-hover:scale-110 transition-transform">
-                <Icon name="Box" size={36} className="text-bs-blue" />
+            {/* Unified Platform Center Node - Enhanced Visibility */}
+            <div className="absolute -translate-x-1/2 -translate-y-1/2 glass w-64 h-64 rounded-[4.5rem] flex flex-col items-center justify-center p-8 border-bs-blue/40 text-center shadow-[0_0_120px_rgba(26,86,219,0.3)] z-10 node-pulse group cursor-help transition-all hover:scale-105" style={{ left: dimensions.width / 2, top: centerY }}>
+              <div className="w-16 h-16 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-5 border border-bs-blue/40 group-hover:scale-110 transition-transform">
+                <Icon name="Box" size={42} className="text-bs-blue" />
               </div>
-              <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
-              <div className="absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-black text-gray-400 uppercase tracking-widest bg-bs-dark/80 px-4 py-2 rounded-full border border-white/10">3,000+ Real Browsers & Devices</div>
+              <h2 className="text-3xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
+              <div className="absolute -bottom-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[9px] font-black text-gray-400 uppercase tracking-widest bg-bs-dark/90 px-5 py-2.5 rounded-full border border-white/10">3,000+ Real Browsers & Devices</div>
             </div>
 
             {nodes.map(n => {
