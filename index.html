@@ -17,18 +17,18 @@
     .text-bs-pink { color: #f97316; }
     .bg-bs-blue { background: #1a56db; }
     .link-line { transition: all 0.8s ease-in-out; pointer-events: none; stroke-linecap: round; }
-    .link-active { stroke: #f97316; stroke-width: 2.5; opacity: 1; filter: drop-shadow(0 0 8px #f97316); stroke-dasharray: 10; animation: flow 1.5s linear infinite; }
+    .link-active { stroke: #f97316; stroke-width: 2.5; opacity: 1; filter: drop-shadow(0 0 10px #f97316); stroke-dasharray: 10; animation: flow 1.5s linear infinite; }
     @keyframes flow { to { stroke-dashoffset: -20; } }
-    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
     .animate-float { animation: float 6s infinite ease-in-out; }
-    .animate-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     .node-pulse { animation: pulse 3s infinite alternate; }
-    @keyframes pulse { from { box-shadow: 0 0 25px rgba(26,86,219,0.1); } to { box-shadow: 0 0 65px rgba(26,86,219,0.3); } }
+    @keyframes pulse { from { box-shadow: 0 0 30px rgba(26,86,219,0.1); } to { box-shadow: 0 0 80px rgba(26,86,219,0.4); } }
     .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
   </style>
 </head>
@@ -188,18 +188,18 @@
         return () => window.removeEventListener('resize', handleResize);
       }, []);
 
-      const centerY = useMemo(() => Math.max(dimensions.height / 2, 450), [dimensions.height]);
+      const centerY = useMemo(() => Math.max(dimensions.height / 2, 500), [dimensions.height]);
       const nodes = useMemo(() => {
         const centerX = dimensions.width / 2;
         const ringProducts = PRODUCTS.filter(p => p.id !== 'custom-devices' && p.id !== 'local');
         const ringIds = ringProducts.map(p => p.id);
         return PRODUCTS.map((p, i) => {
-          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 500, y: centerY + 280 } };
-          if (p.id === 'local') return { ...p, pos: { x: centerX - 500, y: centerY + 280 } };
+          if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 560, y: centerY + 300 } };
+          if (p.id === 'local') return { ...p, pos: { x: centerX - 560, y: centerY + 300 } };
           const ringIndex = ringIds.indexOf(p.id);
           const angle = (ringIndex / ringIds.length) * 2 * Math.PI - Math.PI/2;
-          // Increased radius to prevent overlap
-          const radius = Math.min(dimensions.width * 0.32, 450);
+          // Significantly increased radius to prevent overlap
+          const radius = Math.max(420, Math.min(dimensions.width * 0.38, 550));
           return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
         });
       }, [dimensions.width, centerY]);
@@ -245,25 +245,25 @@
             </div>
           </header>
 
-          <main className="flex-1 relative overflow-visible min-h-[950px] pb-60">
+          <main className="flex-1 relative overflow-visible min-h-[1100px] pb-80">
             <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
               {CONNECTIONS.map((c, i) => {
                 const f = nodes.find(n => n.id === c.from), t = nodes.find(n => n.id === c.to);
                 if(!f || !t) return null;
                 const active = (selected?.id === c.from || selected?.id === c.to) || (hovered?.id === c.from || hovered?.id === c.to) || (recommended.includes(c.from) && recommended.includes(c.to));
                 return (
-                  <path key={i} d={`M ${f.pos.x} ${f.pos.y} Q ${(f.pos.x + t.pos.x)/2 + 60} ${(f.pos.y + t.pos.y)/2 - 60} ${t.pos.x} ${t.pos.y}`} fill="none" stroke={active ? '#f97316' : 'rgba(255,255,255,0.04)'} strokeWidth={active ? 2.5 : 1} className={`link-line ${active ? 'link-active' : ''}`} style={{ opacity: active ? 1 : 0.4 }} />
+                  <path key={i} d={`M ${f.pos.x} ${f.pos.y} Q ${(f.pos.x + t.pos.x)/2 + 80} ${(f.pos.y + t.pos.y)/2 - 80} ${t.pos.x} ${t.pos.y}`} fill="none" stroke={active ? '#f97316' : 'rgba(255,255,255,0.04)'} strokeWidth={active ? 2.5 : 1} className={`link-line ${active ? 'link-active' : ''}`} style={{ opacity: active ? 1 : 0.4 }} />
                 );
               })}
             </svg>
 
-            {/* Unified Platform Center Node - Enhanced Visibility */}
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 glass w-64 h-64 rounded-[4.5rem] flex flex-col items-center justify-center p-8 border-bs-blue/40 text-center shadow-[0_0_120px_rgba(26,86,219,0.3)] z-10 node-pulse group cursor-help transition-all hover:scale-105" style={{ left: dimensions.width / 2, top: centerY }}>
-              <div className="w-16 h-16 bg-bs-blue/20 rounded-2xl flex items-center justify-center mb-5 border border-bs-blue/40 group-hover:scale-110 transition-transform">
-                <Icon name="Box" size={42} className="text-bs-blue" />
+            {/* Unified Platform Center Node - Maximal Visibility */}
+            <div className="absolute -translate-x-1/2 -translate-y-1/2 glass w-72 h-72 rounded-[5rem] flex flex-col items-center justify-center p-8 border-bs-blue/50 text-center shadow-[0_0_150px_rgba(26,86,219,0.4)] z-10 node-pulse group cursor-help transition-all hover:scale-110" style={{ left: dimensions.width / 2, top: centerY }}>
+              <div className="w-20 h-20 bg-bs-blue/30 rounded-3xl flex items-center justify-center mb-6 border-2 border-bs-blue/50 group-hover:scale-110 transition-transform">
+                <Icon name="Box" size={48} className="text-bs-blue" />
               </div>
-              <h2 className="text-3xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
-              <div className="absolute -bottom-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[9px] font-black text-gray-400 uppercase tracking-widest bg-bs-dark/90 px-5 py-2.5 rounded-full border border-white/10">3,000+ Real Browsers & Devices</div>
+              <h2 className="text-4xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
+              <div className="absolute -bottom-16 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] bg-bs-dark/95 px-6 py-3 rounded-full border border-white/20">3,000+ Real Browsers & Devices</div>
             </div>
 
             {nodes.map(n => {
@@ -273,13 +273,13 @@
               const isRecommended = recommended.includes(n.id);
               return (
                 <div key={n.id} onClick={e => { e.stopPropagation(); setSelected(n); setRecommended([]); }} onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(null)} className={`absolute cursor-pointer transition-all duration-700 transform -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'scale-110 z-30' : 'scale-100 z-20'}`} style={{ left: n.pos.x, top: n.pos.y, opacity: isActive ? 1 : (searchTerm || recommended.length > 0) ? 0.05 : 0.15 }} >
-                  <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-44 py-8 border-dashed opacity-70' : 'w-40'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/20 border-bs-blue shadow-[0_0_40px_rgba(26,86,219,0.3)]' : hovered?.id === n.id ? 'border-white/30 bg-white/10' : 'border-white/5'}`}>
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg relative" style={{ backgroundColor: `${n.color}15`, color: n.color }}>
-                      <Icon name={n.icon} size={24} />
-                      {n.status && <div className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-md bg-bs-pink text-[6px] text-white font-black uppercase tracking-tighter shadow-lg">{n.status}</div>}
+                  <div className={`glass-card p-5 rounded-[2.5rem] flex flex-col items-center gap-3 ${isInfra ? 'w-48 py-10 border-dashed opacity-70' : 'w-44'} text-center border-2 ${isSelected || isRecommended ? 'bg-bs-blue/25 border-bs-blue shadow-[0_0_50px_rgba(26,86,219,0.4)]' : hovered?.id === n.id ? 'border-white/40 bg-white/15' : 'border-white/5'}`}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative" style={{ backgroundColor: `${n.color}20`, color: n.color }}>
+                      <Icon name={n.icon} size={28} />
+                      {n.status && <div className="absolute -top-1 -right-1 px-2 py-1 rounded-md bg-bs-pink text-[7px] text-white font-black uppercase tracking-tighter shadow-lg">{n.status}</div>}
                     </div>
-                    <h3 className="font-black text-[12px] tracking-tight leading-tight uppercase italic text-white">{n.name}</h3>
-                    <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{n.category}</div>
+                    <h3 className="font-black text-[13px] tracking-tight leading-tight uppercase italic text-white">{n.name}</h3>
+                    <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{n.category}</div>
                   </div>
                 </div>
               );
