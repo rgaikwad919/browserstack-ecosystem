@@ -1,1 +1,341 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrowserStack Ecosystem</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #06080a; color: #fff; overflow-x: hidden; overflow-y: auto; margin: 0; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1); }
+        .text-bs-pink { color: #f97316; }
+        .bg-bs-blue { background: #1a56db; }
+        .link-line { transition: all 0.8s ease-in-out; pointer-events: none; stroke-linecap: round; }
+        .link-active { stroke: #f97316; stroke-width: 2.5; opacity: 1; filter: drop-shadow(0 0 10px #f97316); stroke-dasharray: 10; animation: flow 1.5s linear infinite; }
+        @keyframes flow { to { stroke-dashoffset: -20; } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 6s infinite ease-in-out; }
+        .animate-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+        .node-pulse { animation: pulse 3s infinite alternate; }
+        @keyframes pulse { from { box-shadow: 0 0 30px rgba(26,86,219,0.1); } to { box-shadow: 0 0 80px rgba(26,86,219,0.4); } }
+        .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bs-blue': '#1a56db',
+                        'bs-pink': '#f97316',
+                        'bs-dark': '#06080a'
+                    },
+                    letterSpacing: {
+                        'ultra-wide': '0.3em'
+                    }
+                }
+            }
+        };
+
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        const PRODUCTS = [
+            { id: 'live', name: 'Live', category: 'Manual Web', color: '#3b82f6', icon: 'Globe', description: 'Instant interactive access to 3,000+ real browsers and OS combinations for manual testing.', features: ['3,000+ Real Browsers', 'Local Testing support', 'Geolocation testing', 'Natural Gestures'], integrations: ['Test Management', 'Local Testing', 'Accessibility'], stages: ['Execute'], status: 'Real Devices' },
+            { id: 'automate', name: 'Automate', category: 'Web Automation', color: '#1a56db', icon: 'Terminal', description: 'Scalable cloud grid for Selenium, Playwright, and Cypress tests on real devices with AI-powered features.', features: ['Selenium/Playwright/Cypress', 'AI Self-Healing', 'Automate TurboScale', 'Parallel Execution'], integrations: ['Test Observability', 'Local Testing', 'CI/CD Pipelines'], stages: ['Create', 'Execute'], status: 'AI Powered' },
+            { id: 'app-live', name: 'App Live', category: 'Manual Mobile', color: '#3b82f6', icon: 'Smartphone', description: 'Interactive manual testing of native and hybrid mobile apps on a massive real device cloud.', features: ['iOS & Android Real Devices', 'Install via Play Store/App Store', 'Biometric testing', 'Direct Install'], integrations: ['Test Management', 'Local Testing'], stages: ['Execute'], status: 'Real Devices' },
+            { id: 'app-automate', name: 'App Automate', category: 'Mobile Automation', color: '#1a56db', icon: 'Cpu', description: 'Automated mobile app testing for Appium, Espresso, and XCUITest on thousands of real devices.', features: ['Appium/Espresso/XCUITest', 'Native App Profiling', 'Real-time debugging', 'Network simulation'], integrations: ['Test Observability', 'CI/CD Pipelines'], stages: ['Create', 'Execute'], status: 'Enterprise' },
+            { id: 'percy', name: 'Percy', category: 'Visual Testing', color: '#ec4899', icon: 'Eye', description: 'AI-powered visual testing and review platform to automate visual diffs across every commit.', features: ['AI-powered noise reduction', 'Cross-browser visual testing', 'Side-by-side diffs', 'SDKs for 20+ frameworks'], integrations: ['Automate', 'App Automate', 'GitHub/GitLab'], stages: ['Create', 'Execute', 'Analyze'], status: 'AI Powered' },
+            { id: 'app-percy', name: 'App Percy', category: 'Visual Testing', color: '#ec4899', icon: 'Smartphone', description: 'AI-powered visual testing for native mobile apps to automate visual diffs across every commit.', features: ['AI-powered noise reduction', 'Native app visual testing', 'Side-by-side diffs', 'Support for iOS & Android'], integrations: ['App Automate', 'GitHub/GitLab'], stages: ['Create', 'Execute', 'Analyze'], status: 'New' },
+            { id: 'observability', name: 'Test Observability', category: 'Analytics', color: '#a855f7', icon: 'BarChart3', description: 'Real-time AI-powered failure analysis and testing insights to optimize your QA cycles.', features: ['Smart Failure Analysis', 'Automatic Flakiness Detection', 'Customizable Dashboards', 'Root Cause Analysis'], integrations: ['Automate', 'App Automate', 'Test Management', 'QEI'], stages: ['Analyze', 'Maintain'], status: 'Insights' },
+            { id: 'qei', name: 'QE Insights', category: 'Intelligence', color: '#8b5cf6', icon: 'BrainCircuit', description: 'Executive-grade quality intelligence layer centralizing coverage, quality, and velocity metrics.', features: ['Unified Net Quality Score', 'Executive Dashboards', 'Identify Delivery Bottlenecks', 'ROI Tracking', 'Key Wins Identification', 'Actionable Focus Areas'], integrations: ['Test Management', 'Test Observability', 'Jira/CI Tools'], stages: ['Analyze', 'Maintain'], status: 'Executive' },
+            { id: 'management', name: 'Test Management', category: 'Planning', color: '#ef4444', icon: 'ClipboardCheck', description: 'Unified test case management to create, manage, and track manual and automated tests with Jira.', features: ['AI-powered case creation', 'Two-way Jira Sync', 'Centralized Test Repository', 'Execution Tracking'], integrations: ['Live', 'Automate', 'Jira', 'QEI'], stages: ['Plan', 'Analyze'], status: 'Unified' },
+            { id: 'accessibility', name: 'Accessibility', category: 'Compliance', color: '#10b981', icon: 'CheckCircle', description: 'Integrated accessibility testing to identify and fix compliance issues (WCAG) faster.', features: ['Automated Workflow Scanning', 'Assisted Manual Audits', 'Reporting & Compliance', 'DevTools Integration'], integrations: ['Live', 'Automate', 'Test Observability'], stages: ['Execute', 'Analyze'], status: 'WCAG' },
+            { id: 'low-code', name: 'Low Code', category: 'AI Automation', color: '#f97316', icon: 'Zap', description: 'Next-gen low-code automation platform to build robust tests without writing a single line of code.', features: ['Recorder-based authoring', 'AI Self-healing', 'Visual execution', 'Instant Cloud execution'], integrations: ['Automate', 'Test Management'], stages: ['Design', 'Create'], status: 'AI Powered' },
+            { id: 'bug-capture', name: 'Bug Capture', category: 'Reporting', color: '#f43f5e', icon: 'Camera', description: 'Instant bug reporting and screen recording tool that captures technical logs and network data.', features: ['Screen Recording', 'Network/Console Logs', 'One-click Jira Sync', 'Annotate Diffs'], integrations: ['Live', 'App Live', 'Jira'], stages: ['Execute', 'Analyze'], status: 'Rapid' },
+            { id: 'local', name: 'Local Testing', category: 'Connectivity', color: '#64748b', icon: 'Shield', description: 'Secure, persistent tunnel to test internal development or staging servers behind firewalls.', features: ['Encrypted Tunneling', 'Zero Firewall Config', 'Support for Proxy/VPN', 'Binary & npm support'], integrations: ['Live', 'Automate', 'App Live'], stages: ['Create', 'Execute'], status: 'Secure' },
+            { id: 'custom-devices', name: 'Custom Device Lab', category: 'Infrastructure', color: '#14b8a6', icon: 'Smartphone', description: 'Exclusive access to customized real devices for strict compliance, unique scenarios, and persistent setups.', features: ['Private, Exclusive Access', 'Persistent Environments', 'UDID Level Control', 'Compliance Ready'], integrations: ['All Products'], stages: ['Foundational'], status: 'Private', link: 'https://www.browserstack.com/custom-device-lab' }
+        ];
+
+        const CONNECTIONS = [
+            { from: 'live', to: 'management', type: 'Reporting' },
+            { from: 'automate', to: 'observability', type: 'Insights' },
+            { from: 'app-live', to: 'management', type: 'Reporting' },
+            { from: 'app-automate', to: 'observability', type: 'Insights' },
+            { from: 'percy', to: 'automate', type: 'Visual Sync' },
+            { from: 'app-percy', to: 'app-automate', type: 'Visual Sync' },
+            { from: 'observability', to: 'qei', type: 'Intelligence' },
+            { from: 'management', to: 'qei', type: 'Strategy' },
+            { from: 'low-code', to: 'automate', type: 'Execution' },
+            { from: 'accessibility', to: 'observability', type: 'Compliance' },
+            { from: 'local', to: 'automate', type: 'Tunnel' },
+            { from: 'local', to: 'live', type: 'Tunnel' },
+            { from: 'bug-capture', to: 'management', type: 'Bug Sync' },
+            { from: 'custom-devices', to: 'live', type: 'Infra' },
+            { from: 'custom-devices', to: 'automate', type: 'Infra' }
+        ];
+
+        const AI_TIMELINE = [
+            { stage: 'Create', agent: 'GenAI Scripting', impact: '10x Faster' },
+            { stage: 'Execute', agent: 'Self-Healing AI', impact: 'Zero Flaky' },
+            { stage: 'Analyze', agent: 'AI Failure Analysis', impact: 'Root Cause' }
+        ];
+
+        const Icon = ({ name, size = 18, className }) => {
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name.toLowerCase()} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        const DetailPanel = ({ entity, onClose }) => {
+            if (!entity) return null;
+            const related = CONNECTIONS.filter(c => c.from === entity.id || c.to === entity.id);
+            return (
+                <div className="fixed inset-y-0 right-0 w-full md:w-[420px] glass z-50 p-6 md:p-10 animate-in shadow-[-40px_0_80px_rgba(0,0,0,0.8)] border-l border-white/10 flex flex-col">
+                    <button onClick={onClose} className="self-start mb-8 text-gray-500 hover:text-white transition-all group">
+                        <Icon name="ArrowRight" className="group-hover:translate-x-2 transition-transform" />
+                    </button>
+                    <div className="flex items-center gap-6 mb-8 shrink-0">
+                        <div className="w-16 h-16 rounded-3xl flex items-center justify-center shadow-xl" style={{ backgroundColor: entity.color }}>
+                            <Icon name={entity.icon} size={32} />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl md:text-4xl font-black uppercase italic leading-tight tracking-tighter">{entity.name}</h2>
+                            <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest mt-2">{entity.category}</div>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                        <p className="text-gray-300 text-sm md:text-base mb-10 leading-relaxed font-medium">{entity.description}</p>
+                        <div className="mb-10">
+                            <h3 className="text-[9px] font-black text-white uppercase tracking-[0.3em] mb-4 flex items-center gap-2 opacity-50">Capabilities</h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {entity.features.map(f => (
+                                    <div key={f} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/5 text-[11px] font-bold hover:bg-white/[0.08] transition-all">
+                                        <div className="w-1 h-1 rounded-full bg-bs-pink shadow-[0_0_8px_#f97316]"></div>
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        {entity.link && (
+                            <a href={entity.link} target="_blank" className="flex items-center justify-between p-4 rounded-2xl bg-bs-blue/10 border border-bs-blue/30 mb-10 group hover:bg-bs-blue/20 transition-all">
+                                <span className="font-bold text-xs uppercase tracking-wider text-bs-blue">Explore Documentation</span>
+                                <Icon name="ExternalLink" size={14} className="text-bs-blue group-hover:scale-110 transition-transform" />
+                            </a>
+                        )}
+                        <div className="mb-10">
+                            <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4">Ecosystem Connections</h3>
+                            <div className="flex flex-col gap-2">
+                                {related.map((c, i) => {
+                                    const other = PRODUCTS.find(p => p.id === (c.from === entity.id ? c.to : c.from));
+                                    if (!other) return null;
+                                    return (
+                                        <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 transition-all cursor-pointer group">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5">
+                                                    <Icon name={other.icon} size={16} className="text-gray-400 group-hover:text-white" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-gray-400 group-hover:text-white uppercase">{other.name}</span>
+                                            </div>
+                                            <div className="text-[8px] font-black text-bs-pink uppercase bg-bs-pink/10 px-2 py-1 rounded-md">{c.type}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ContactWidget = () => {
+            const [expanded, setExpanded] = useState(false);
+            return (
+                <div className={`fixed bottom-8 right-8 z-[60] contact-widget glass border-bs-blue/30 shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center ${expanded ? 'expanded p-8 w-80 rounded-[2.5rem]' : 'w-14 h-14 rounded-full cursor-pointer hover:scale-110'}`} onClick={() => !expanded && setExpanded(true)}>
+                    {!expanded ? (
+                        <Icon name="Mail" size={24} className="text-bs-blue" />
+                    ) : (
+                        <div className="w-full animate-in">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                    <img src="https://ui-avatars.com/api/?name=Rahul+Gaikwad&background=1a56db&color=fff" className="w-12 h-12 rounded-2xl shadow-xl border border-white/10" />
+                                    <div>
+                                        <div className="text-[10px] font-black text-bs-pink uppercase tracking-widest leading-none mb-1">Account Executive</div>
+                                        <div className="text-lg font-black leading-none tracking-tighter italic">Rahul Gaikwad</div>
+                                    </div>
+                                </div>
+                                <button onClick={(e) => { e.stopPropagation(); setExpanded(false); }} className="p-1 hover:bg-white/10 rounded-lg"><Icon name="X" size={16} className="text-gray-500" /></button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                                <a href="mailto:rgaikwad919@gmail.com" className="flex items-center gap-4 p-4 rounded-2xl bg-bs-blue/10 border border-bs-blue/30 hover:bg-bs-blue transition-all group">
+                                    <Icon name="Mail" size={18} className="text-bs-blue group-hover:text-white" />
+                                    <span className="text-xs font-bold uppercase tracking-widest text-white">Email Rahul</span>
+                                </a>
+                                <a href="tel:+16506811445" className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                                    <Icon name="Phone" size={18} className="text-gray-400 group-hover:text-white" />
+                                    <span className="text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-white">+1 (650) 681-1445</span>
+                                </a>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [selected, setSelected] = useState(null);
+            const [hovered, setHovered] = useState(null);
+            const [activeStage, setActiveStage] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [recommended, setRecommended] = useState([]);
+            const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+            useEffect(() => {
+                const handleResize = () => setDimensions({ width: window.innerWidth, height: window.innerHeight });
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            const centerY = useMemo(() => Math.max(dimensions.height / 2, 500), [dimensions.height]);
+
+            const nodes = useMemo(() => {
+                const centerX = dimensions.width / 2;
+                const ringProducts = PRODUCTS.filter(p => p.id !== 'custom-devices' && p.id !== 'local');
+                const ringIds = ringProducts.map(p => p.id);
+
+                return PRODUCTS.map((p, i) => {
+                    if (p.id === 'custom-devices') return { ...p, pos: { x: centerX + 560, y: centerY + 300 } };
+                    if (p.id === 'local') return { ...p, pos: { x: centerX - 560, y: centerY + 300 } };
+                    
+                    const ringIndex = ringIds.indexOf(p.id);
+                    const angle = (ringIndex / ringIds.length) * 2 * Math.PI - Math.PI/2;
+                    const radius = Math.max(380, Math.min(dimensions.width * 0.4, 600));
+                    
+                    return { ...p, pos: { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) } };
+                });
+            }, [dimensions.width, centerY]);
+
+            const isNodeActive = (n) => {
+                if (recommended.length > 0) return recommended.includes(n.id);
+                if (searchTerm) return n.name.toLowerCase().includes(searchTerm.toLowerCase());
+                if (!selected && !activeStage && !hovered) return true;
+                if (activeStage) return n.stages.includes(activeStage);
+                if (hovered) return n.id === hovered.id || CONNECTIONS.some(c => (c.from === hovered.id && c.to === n.id) || (c.to === hovered.id && c.from === n.id));
+                if (selected) return n.id === selected.id || CONNECTIONS.some(c => (c.from === selected.id && c.to === n.id) || (c.to === selected.id && c.from === n.id));
+                return true;
+            };
+
+            return (
+                <div className="min-h-screen w-screen flex flex-col bg-bs-dark overflow-y-auto overflow-x-hidden select-none relative custom-scrollbar" onClick={() => { setSelected(null); setRecommended([]); }}>
+                    <header className="h-20 glass flex items-center justify-between px-6 md:px-10 z-40 shrink-0 border-b border-white/5 sticky top-0">
+                        <div className="flex items-center gap-4 md:gap-10">
+                            <div className="flex items-center gap-3 md:gap-4">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-bs-blue rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(26,86,219,0.2)]">
+                                    <Icon name="Layers" size={20} />
+                                </div>
+                                <h1 className="font-black italic uppercase text-lg md:text-2xl tracking-tighter">
+                                    BrowserStack <span className="text-bs-pink">Ecosystem</span>
+                                </h1>
+                            </div>
+                            <div className="relative group hidden lg:block" onClick={e => e.stopPropagation()}>
+                                <Icon name="Search" size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-bs-blue transition-colors" />
+                                <input type="text" placeholder="Find products..." className="bg-white/5 border border-white/10 rounded-full py-2.5 pl-12 pr-6 text-[10px] font-bold uppercase tracking-widest focus:outline-none focus:border-bs-blue/50 focus:bg-white/[0.08] transition-all w-64" value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setRecommended([]); }} />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 hidden xl:flex">
+                            {AI_TIMELINE.map(t => (
+                                <div key={t.stage} className="px-5 py-1.5 rounded-lg flex flex-col items-center hover:bg-white/5 transition-all">
+                                    <div className="text-[8px] font-black uppercase text-gray-500 tracking-ultra-wide leading-none mb-1">{t.stage}</div>
+                                    <div className="text-[9px] font-bold text-bs-pink leading-none">{t.agent}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <button className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full border border-bs-blue/40 text-[9px] font-black uppercase tracking-widest hover:bg-bs-blue/10 transition-all">
+                                <Icon name="Sparkles" size={12} className="text-bs-blue" />
+                                Build My Stack
+                            </button>
+                            <button className="bg-bs-blue px-6 md:px-8 py-2 md:py-3 rounded-full text-[9px] font-black uppercase tracking-widest shadow-xl hover:-translate-y-0.5 transition-all">
+                                Demo
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 relative overflow-visible min-h-[1100px] pb-80">
+                        <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none overflow-visible">
+                            {CONNECTIONS.map((c, i) => {
+                                const f = nodes.find(n => n.id === c.from), t = nodes.find(n => n.id === c.to);
+                                if(!f || !t) return null;
+                                const active = (selected?.id === c.from || selected?.id === c.to) || (hovered?.id === c.from || hovered?.id === c.to) || (recommended.includes(c.from) && recommended.includes(c.to));
+                                return (
+                                    <path key={i} d={`M ${f.pos.x} ${f.pos.y} Q ${(f.pos.x + t.pos.x)/2 + 80} ${(f.pos.y + t.pos.y)/2 - 80} ${t.pos.x} ${t.pos.y}`} fill="none" stroke={active ? "#f97316" : "rgba(255,255,255,0.04)"} strokeWidth={active ? 2.5 : 1} className={`link-line ${active ? "link-active" : ""}`} style={{ opacity: active ? 1 : 0.4 }} />
+                                );
+                            })}
+                        </svg>
+
+                        <div className="absolute -translate-x-1/2 -translate-y-1/2 glass w-56 h-56 md:w-72 md:h-72 rounded-[4rem] md:rounded-[5rem] flex flex-col items-center justify-center p-6 md:p-8 border-bs-blue/50 text-center shadow-[0_0_150px_rgba(26,86,219,0.4)] z-10 node-pulse group cursor-help transition-all hover:scale-110" style={{ left: dimensions.width / 2, top: centerY }}>
+                            <div className="w-16 h-16 md:w-20 md:h-20 bg-bs-blue/30 rounded-3xl flex items-center justify-center mb-4 md:mb-6 border-2 border-bs-blue/50 group-hover:scale-110 transition-transform">
+                                <Icon name="Box" size={40} className="text-bs-blue" />
+                            </div>
+                            <h2 className="text-2xl md:text-4xl font-black uppercase italic leading-none tracking-tighter">Unified <br/><span className="text-bs-blue">Platform</span></h2>
+                            <div className="absolute -bottom-16 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] bg-bs-dark/95 px-6 py-3 rounded-full border border-white/20">3,000+ Real Browsers & Devices</div>
+                        </div>
+
+                        {nodes.map(n => {
+                            const isActive = isNodeActive(n);
+                            const isSelected = selected?.id === n.id;
+                            const isInfra = n.id === "custom-devices" || n.id === "local";
+                            const isRecommended = recommended.includes(n.id);
+                            return (
+                                <div key={n.id} onClick={e => { e.stopPropagation(); setSelected(n); setRecommended([]); }} onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(null)} className={`absolute cursor-pointer transition-all duration-700 transform -translate-x-1/2 -translate-y-1/2 ${isSelected ? "scale-110 z-30" : "scale-100 z-20"}`} style={{ left: n.pos.x, top: n.pos.y, opacity: isActive ? 1 : (searchTerm || recommended.length > 0) ? 0.05 : 0.15 }} >
+                                    <div className={`glass-card p-4 md:p-5 rounded-[2rem] md:rounded-[2.5rem] flex flex-col items-center gap-2 md:gap-3 ${isInfra ? "w-40 md:w-48 py-8 md:py-10 border-dashed opacity-70" : "w-32 md:w-44"} text-center border-2 ${isSelected || isRecommended ? "bg-bs-blue/25 border-bs-blue shadow-[0_0_50px_rgba(26,86,219,0.4)]" : hovered?.id === n.id ? "border-white/40 bg-white/15" : "border-white/5"}`}>
+                                        <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg relative" style={{ backgroundColor: `${n.color}20`, color: n.color }}>
+                                            <Icon name={n.icon} size={22} />
+                                            {n.status && <div className="absolute -top-1 -right-1 px-2 py-1 rounded-md bg-bs-pink text-[7px] text-white font-black uppercase tracking-tighter shadow-lg">{n.status}</div>}
+                                        </div>
+                                        <h3 className="font-black text-[11px] md:text-[13px] tracking-tight leading-tight uppercase italic text-white line-clamp-2">{n.name}</h3>
+                                        <div className="text-[8px] md:text-[9px] font-black text-gray-500 uppercase tracking-widest">{n.category}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </main>
+
+                    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 glass px-8 md:px-12 py-4 md:py-5 rounded-full flex items-center gap-6 md:gap-12 z-40 shadow-2xl border border-white/10 max-w-[90vw] overflow-x-auto no-scrollbar">
+                        {["Plan", "Design", "Create", "Execute", "Analyze", "Maintain"].map(s => (
+                            <div key={s} onMouseEnter={() => { setActiveStage(s); setRecommended([]); }} onMouseLeave={() => setActiveStage(null)} className="flex flex-col items-center gap-2 md:gap-2.5 group cursor-pointer transition-all hover:-translate-y-1 shrink-0">
+                                <div className={`text-[8px] md:text-[9px] font-black uppercase tracking-ultra-wide transition-colors ${activeStage === s ? "text-bs-pink" : "text-gray-500 group-hover:text-bs-pink"}`}>{s}</div>
+                                <div className={`w-2 md:w-2.5 h-2 md:h-2.5 rounded-full transition-all ${activeStage === s ? "bg-bs-pink scale-125 shadow-[0_0_15px_#f97316]" : "bg-white/10 group-hover:bg-bs-pink group-hover:scale-125"}`}></div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <DetailPanel entity={selected} onClose={() => setSelected(null)} />
+                    <ContactWidget />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<App />);
+    </script>
+</body>
+</html>
